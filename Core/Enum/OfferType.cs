@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Core.Enums
+{
+    public enum OfferType
+    {
+        Product,
+        Category,
+        Cart,
+        Order,
+        Shipping
+    }
+}
