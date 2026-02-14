@@ -14,7 +14,5 @@ namespace Application.DTOs
         public int Quantity { get; set; }
         public int Reserved { get; set; }
         public List<VariantImagesDto> ImagesDtos { get; set; } = new List<VariantImagesDto>();
-        //public int ColorId { get; set; }
-        //public int SizeId { get; set; }
     }
 }

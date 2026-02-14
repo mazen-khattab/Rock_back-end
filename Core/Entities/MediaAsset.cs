@@ -9,7 +9,7 @@ namespace Core.Entities
         public string FilePath { get; set; } = string.Empty;
         public string? AltText { get; set; }
         public string MediaType { get; set; } = string.Empty;
-        public DateTimeOffset CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
 
         public ICollection<VariantImage> VariantImages { get; set; } = new List<VariantImage>();
     }

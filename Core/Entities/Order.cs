@@ -14,7 +14,7 @@ namespace Core.Entities
         public string City { get; set; } = string.Empty;
         public OrderStatus Status { get; set; }
         public bool IsDeleted { get; set; }
-        public DateTimeOffset CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
 
         public User User { get; set; } = null!;
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();

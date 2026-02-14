@@ -10,3 +10,4 @@ D:\Mazen\Rock\Rock_back-end\Core\obj\Debug\net10.0\Core.dll
 D:\Mazen\Rock\Rock_back-end\Core\obj\Debug\net10.0\refint\Core.dll
 D:\Mazen\Rock\Rock_back-end\Core\obj\Debug\net10.0\Core.pdb
 D:\Mazen\Rock\Rock_back-end\Core\obj\Debug\net10.0\ref\Core.dll
+D:\Mazen\Rock\Rock_back-end\Core\obj\Debug\net10.0\Core.sourcelink.json

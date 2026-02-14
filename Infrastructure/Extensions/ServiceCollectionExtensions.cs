@@ -22,6 +22,7 @@ namespace Infrastructure.Extensions
             services.AddScoped(typeof(IServices<>), typeof(Services<>));
             services.AddScoped(typeof(IAuthService), typeof(AuthService));
             services.AddScoped(typeof(IProductService), typeof(ProductService));
+            services.AddScoped(typeof(ICartService), typeof(CartService));
 
             return services;
         }

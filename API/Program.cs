@@ -131,8 +131,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseCors("FrontEndPolicy");
-app.UseAuthorization();
 app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseSwagger();
 app.UseSwaggerUI(options =>

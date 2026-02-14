@@ -6,8 +6,8 @@ namespace Core.Entities
     {
         public int VariantId { get; set; }
         public int Quantity { get; set; }
-        public DateTimeOffset ExpireAt { get; set; }
-        public int GuestId { get; set; }
+        public DateTime ExpireAt { get; set; }
+        public string GuestId { get; set; } = null!;
 
         public Variant Variant { get; set; } = null!;
     }

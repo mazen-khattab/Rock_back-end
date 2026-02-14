@@ -43,16 +43,16 @@ namespace API.Controllers
                 {
                     HttpOnly = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Lax,
-                    Expires = DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes)
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTime.Now.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes)
                 };
 
                 var refreshTokenCookie = new CookieOptions()
                 {
                     HttpOnly = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Lax,
-                    Expires = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays)
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTime.Now.AddDays(_jwtSettings.RefreshTokenExpirationDays)
                 };
 
                 Response.Cookies.Append("accessToken", response.AccessToken, accessTokenCookie);
@@ -74,12 +74,14 @@ namespace API.Controllers
             {
                 AuthServiceResponse result = await _authService.Login(request);
 
-                if (!result.IsSuccess) return Unauthorized(result);
+                if (!result.IsSuccess) return BadRequest(result);
 
                 GenerateCookies(result);
 
                 User? user = await _userManager.FindByEmailAsync(request.Email);
                 var role = await _userManager.GetRolesAsync(user);
+
+                _logger.LogInformation("User Login successful ");
 
                 return Ok(new ApiResponse<UserInfoDto>
                 {
@@ -145,7 +147,7 @@ namespace API.Controllers
             if (string.IsNullOrWhiteSpace(refreshToken))
             {
                 _logger.LogInformation("Refresh token does not exist in cookies");
-                return NoContent();
+                return Unauthorized("Refresh token does not exist in cookies");
             }
 
             var result = await _authService.ValidateRefreshToken(refreshToken);
@@ -153,7 +155,7 @@ namespace API.Controllers
             if (!result.IsSuccess)
             {
                 _logger.LogInformation("Invalid refresh token!\n");
-                return NoContent();
+                return Unauthorized();
             }
 
             GenerateCookies(result);
@@ -161,6 +163,8 @@ namespace API.Controllers
             _logger.LogInformation("Tokens refreshed successfully\n");
 
             RefreshToken? token = await _refreshToken.GetAsync(rt => rt.Token == refreshToken, true, rt => rt.User);
+
+            var roles = await _userManager.GetRolesAsync(token?.User);
 
             return Ok(new ApiResponse<UserInfoDto>
             {
@@ -170,6 +174,7 @@ namespace API.Controllers
                 {
                     UserId = token?.User.Id,
                     UserName = token?.User.Fname[0..1].ToUpper() + token?.User.Lname[0..1].ToUpper(),
+                    Role = roles.ToList(),
                 }
             });
         }
@@ -215,9 +220,24 @@ namespace API.Controllers
             {
                 var result = await _authService.AssignRoleAsync(request);
 
+                if (!result.IsSuccess)
+                {
+                    _logger.LogInformation("Fail to assigned the Role");
+
+                    return Ok(new ApiResponse<string>()
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
                 _logger.LogInformation("Role assigned successfully");
 
-                return Ok(new { message = "Role assigned successfully" });
+                return Ok(new ApiResponse<string>()
+                {
+                    Success = true,
+                    Message = result.Message
+                });
             }
             catch (Exception ex)
             {

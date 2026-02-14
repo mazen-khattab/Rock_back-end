@@ -6,6 +6,7 @@ using Core.Enums;
 using Core.Interfaces;
 using Core.Settings;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -113,16 +114,16 @@ namespace Application.Services
         {
             _logger.LogInformation("Registration attempt started for email: {Email}", request.Email);
 
-            var isUserExists = await _userManager.FindByEmailAsync(request.Email);
+            var isUserExists = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == request.Email || u.PhoneNumber == request.PhoneNumber);
 
             if (isUserExists != null)
             {
-                _logger.LogWarning("Registration attempt with existing email: {Email}", request.Email);
+                _logger.LogWarning("Registration attempt with existing email: {Email} or phone number: {Number}", request.Email, request.PhoneNumber);
 
                 return new AuthServiceResponse
                 {
                     IsSuccess = false,
-                    Message = "User already exists."
+                    Message = "Some of the provided information is already in use."
                 };
             }
 
@@ -211,7 +212,7 @@ namespace Application.Services
             var tokenObject = new JwtSecurityToken(
                 issuer: _jwtSettings.Issuer,
                 audience: _jwtSettings.Audience,
-                expires: DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
+                expires: DateTime.Now.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
                 claims: userClaims,
                 signingCredentials: new SigningCredentials(authSecret, SecurityAlgorithms.HmacSha256));
 
@@ -235,12 +236,23 @@ namespace Application.Services
                 .Replace("/", "_")
                 .Replace("=", "");
 
+            RefreshToken? DbToken = _refreshToken.Query(rt => rt.UserId == user.Id)
+                .OrderByDescending(rt => rt.Id)
+                .FirstOrDefault();
+
+            if (DbToken is not null)
+            {
+                DbToken.ExpDate = DateTime.Now;
+            }
+
             RefreshToken refreshToken = new()
             {
                 Token = token,
-                ExpDate = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays),
+                ExpDate = DateTime.Now.AddDays(_jwtSettings.RefreshTokenExpirationDays),
                 UserId = user.Id
             };
+
+            _logger.LogInformation("Refresh token id {0} for user: {1}", DbToken?.Id.ToString(), user.Id.ToString());
 
             await _refreshToken.AddAsync(refreshToken);
             await _refreshToken.SaveChangesAsync();
@@ -264,7 +276,7 @@ namespace Application.Services
 
             var DBToken = await _refreshToken.GetAsync(t => t.Token == token, false, rf => rf.User);
 
-            if (DBToken == null || DBToken.ExpDate < DateTime.UtcNow)
+            if (DBToken == null || DBToken.ExpDate < DateTime.Now)
             {
                 _logger.LogWarning("Refresh token is invalid or expired.");
 
@@ -276,6 +288,9 @@ namespace Application.Services
             }
 
             _logger.LogInformation("Refresh token validated for user: {UserId}", DBToken.UserId);
+
+            DBToken.ExpDate = DateTime.Now;
+            await _refreshToken.SaveChangesAsync(); 
 
             return new AuthServiceResponse()
             {
@@ -366,7 +381,7 @@ namespace Application.Services
                 };
             }
 
-            var dbToken = await _refreshToken.GetAsync(t => t.Token == refreshToken, false, rf => rf.User);
+            var dbToken = await _refreshToken.GetAsync(t => t.Token == refreshToken, true, rf => rf.User);
 
             if (dbToken == null)
             {
@@ -379,7 +394,7 @@ namespace Application.Services
             }
 
             // Mark token expired instead of deleting — works with available Services API
-            dbToken.ExpDate = DateTime.UtcNow;
+            dbToken.ExpDate = DateTime.Now;
             await _refreshToken.SaveChangesAsync();
 
             _logger.LogInformation("Refresh token revoked for user: {UserId}", dbToken.UserId);

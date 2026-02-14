@@ -68,6 +68,171 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "API.Controllers.CartController",
+    "Method": "AddToCartUser",
+    "RelativePath": "api/Cart/AddToCartUser",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "addToCartDto",
+        "Type": "Application.DTOs.AddToUserCartDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.CartController",
+    "Method": "AddToGuestCart",
+    "RelativePath": "api/Cart/AddToGuestCart",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "addToGuestCartDto",
+        "Type": "Application.DTOs.AddToGuestCartDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.CartController",
+    "Method": "DecreaseGuestAmount",
+    "RelativePath": "api/Cart/DecreaseGuestAmount",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "guestCartOperationDto",
+        "Type": "Application.DTOs.GuestCartOperationDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.CartController",
+    "Method": "DecreaseUserAmount",
+    "RelativePath": "api/Cart/DecreaseUserAmount",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "cartOperationDto",
+        "Type": "Application.DTOs.UserCartOperationDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.CartController",
+    "Method": "GetGuestCart",
+    "RelativePath": "api/Cart/GetGuestCart/{langId}/{guestId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "guestId",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "langId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.CartController",
+    "Method": "GetUserCart",
+    "RelativePath": "api/Cart/GetUserCart/{langId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "langId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.CartController",
+    "Method": "IncreaseGuestAmount",
+    "RelativePath": "api/Cart/IncreaseGuestAmount",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "guestCartOperationDto",
+        "Type": "Application.DTOs.GuestCartOperationDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.CartController",
+    "Method": "IncreaseUserAmount",
+    "RelativePath": "api/Cart/IncreaseUserAmount",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "cartOperationDto",
+        "Type": "Application.DTOs.UserCartOperationDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.CartController",
+    "Method": "Merge",
+    "RelativePath": "api/Cart/Merge",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "mergeCartDto",
+        "Type": "Application.DTOs.MergeCartDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.CartController",
+    "Method": "RemoveUserItem",
+    "RelativePath": "api/Cart/RemoveUserItem",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "cartOperationDto",
+        "Type": "Application.DTOs.UserCartOperationDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "API.Controllers.ProductController",
     "Method": "GetProductById",
     "RelativePath": "api/Product/{id}/{langId}",

@@ -169,3 +169,4 @@ D:\Mazen\Rock\Rock_back-end\API\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis
 D:\Mazen\Rock\Rock_back-end\API\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 D:\Mazen\Rock\Rock_back-end\API\bin\Debug\net10.0\API.staticwebassets.runtime.json
 D:\Mazen\Rock\Rock_back-end\API\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+D:\Mazen\Rock\Rock_back-end\API\obj\Debug\net10.0\API.sourcelink.json

@@ -12,10 +12,10 @@ namespace Core.Entities
         public string Code { get; set; } = string.Empty;
         public int Priority { get; set; }
         public bool IsStackable { get; set; }
-        public DateTimeOffset StartDate { get; set; }
-        public DateTimeOffset EndDate { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
         public bool IsActive { get; set; }
-        public DateTimeOffset CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
 
         public ICollection<OfferTranslation> Translations { get; set; } = new List<OfferTranslation>();
         public ICollection<ProductOffer> ProductOffers { get; set; } = new List<ProductOffer>();

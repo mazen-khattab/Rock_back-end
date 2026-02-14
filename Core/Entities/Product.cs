@@ -10,7 +10,7 @@ namespace Core.Entities
         public decimal Price { get; set; }
         public decimal OriginalPrice { get; set; }
         public bool IsDeleted { get; set; }
-        public DateTimeOffset CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
 
         public Category Category { get; set; } = null!;
         public ICollection<ProductTranslation> Translations { get; set; } = new List<ProductTranslation>();
