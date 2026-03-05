@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Application.Mapping;
 using Application.Services;
 using Core.Interfaces;
 using Infrastructure.Persistence;
@@ -23,6 +24,9 @@ namespace Infrastructure.Extensions
             services.AddScoped(typeof(IAuthService), typeof(AuthService));
             services.AddScoped(typeof(IProductService), typeof(ProductService));
             services.AddScoped(typeof(ICartService), typeof(CartService));
+            services.AddScoped(typeof(IOrderRepo), typeof(OrderRepo));
+            services.AddScoped(typeof(IOrderService), typeof(OrderService));
+            services.AddScoped(typeof(IMapper), typeof(Mapper));
 
             return services;
         }

@@ -1,5 +1,7 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
+using Application.Mapping;
+using Application.Responses;
 using Core.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -14,11 +16,13 @@ namespace API.Controllers
     {
         private readonly ICartService _cartService;
         private readonly ILogger<CartController> _logger;
+        private readonly IMapper _mapper;
 
-        public CartController(ICartService cartService, ILogger<CartController> logger)
+        public CartController(ICartService cartService, ILogger<CartController> logger, IMapper mapper)
         {
             _cartService = cartService;
             _logger = logger;
+            _mapper = mapper;
         }
 
         private string GetUserId()
@@ -40,16 +44,24 @@ namespace API.Controllers
 
                 var result = await _cartService.GetUserCart(userId, langId);
 
-                if (!result.Success)
+                if (!result.isSucess)
                 {
                     _logger.LogWarning("Failed to get the cart of user {UserId}: {Message}", userId, result.Message);
                     return BadRequest(result.Message);
                 }
 
+                _logger.LogInformation("convert the userCart to cartDto for user {UserId}", userId);
+                var cartDto = _mapper.MapToDtoList(result.Data);
+
                 _logger.LogInformation("Successfully gettign the cart for user {UserId}", userId);
-                return Ok(result);
+                return Ok(new ApiResponse<IEnumerable<CartDto>>()
+                {
+                    isSucess = true,
+                    Message = "Successfully merging the cart",
+                    Data = cartDto
+                });
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Exception in GetUserCart endpoint");
                 return BadRequest(new
@@ -77,7 +89,7 @@ namespace API.Controllers
 
                 var result = await _cartService.AddToUserCart(userId, variantId, quantity);
 
-                if (!result.Success)
+                if (!result.isSucess)
                 {
                     _logger.LogWarning("Failed to add item to cart for user {UserId}: {Message}", userId, result.Message);
                     return BadRequest(result.Message);
@@ -96,7 +108,7 @@ namespace API.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPut]
         [Authorize]
         [Route("IncreaseUserAmount")]
         public async Task<IActionResult> IncreaseUserAmount([FromBody] UserCartOperationDto cartOperationDto)
@@ -112,7 +124,7 @@ namespace API.Controllers
 
                 var result = await _cartService.IncreaseUserAmount(userId, variantId);
 
-                if (!result.Success)
+                if (!result.isSucess)
                 {
                     _logger.LogWarning("Failed to increase the amount for user {UserId}: {Message}", userId, result.Message);
                     return BadRequest(result.Message);
@@ -131,7 +143,7 @@ namespace API.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPut]
         [Authorize]
         [Route("DecreaseUserAmount")]
         public async Task<IActionResult> DecreaseUserAmount([FromBody] UserCartOperationDto cartOperationDto)
@@ -147,7 +159,7 @@ namespace API.Controllers
 
                 var result = await _cartService.DecreaseUserAmount(userId, variantId);
 
-                if (!result.Success)
+                if (!result.isSucess)
                 {
                     _logger.LogWarning("Failed to decrease the amount for user {UserId}: {Message}", userId, result.Message);
                     return BadRequest(result.Message);
@@ -166,13 +178,11 @@ namespace API.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpDelete]
         [Authorize]
-        [Route("RemoveUserItem")]
-        public async Task<IActionResult> RemoveUserItem([FromBody] UserCartOperationDto cartOperationDto)
+        [Route("RemoveUserItem/{variantId}")]
+        public async Task<IActionResult> RemoveUserItem(int variantId)
         {
-            int variantId = cartOperationDto.VariantId;
-
             _logger.LogInformation("RemoveUserItem endpoint called - VariantId: {VariantId}", variantId);
 
             try
@@ -182,7 +192,7 @@ namespace API.Controllers
 
                 var result = await _cartService.RemoveUserItem(userId, variantId);
 
-                if (!result.Success)
+                if (!result.isSucess)
                 {
                     _logger.LogWarning("Failed to remove itme for user {UserId}: {Message}", userId, result.Message);
                     return BadRequest(result.Message);
@@ -211,14 +221,22 @@ namespace API.Controllers
 
                 var result = await _cartService.GetGuestCart(guestId, langId);
 
-                if (!result.Success)
+                if (!result.isSucess)
                 {
                     _logger.LogWarning("Failed to get the cart of gueset {GuestId}: {Message}", guestId, result.Message);
                     return BadRequest(result.Message);
                 }
 
+                _logger.LogInformation("convert the guestCart to cartDto for user {GuestId}", guestId);
+                var cartDto = _mapper.MapToDtoList(result.Data);
+
                 _logger.LogInformation("Successfully gettign the cart for gueset {GuestId}", guestId);
-                return Ok(result);
+                return Ok(new ApiResponse<IEnumerable<CartDto>>()
+                {
+                    isSucess = true,
+                    Message = "Successfully merging the cart",
+                    Data = cartDto
+                });
             }
             catch (Exception ex)
             {
@@ -247,7 +265,7 @@ namespace API.Controllers
 
                 var result = await _cartService.AddToGuestCart(guestId, variantId, quantity);
 
-                if (!result.Success)
+                if (!result.isSucess)
                 {
                     _logger.LogWarning("Failed to add item to cart for guest {GuestId}: {Message}", guestId, result.Message);
                     return BadRequest(result.Message);
@@ -266,7 +284,7 @@ namespace API.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPut]
         [Route("IncreaseGuestAmount")]
         public async Task<IActionResult> IncreaseGuestAmount([FromBody] GuestCartOperationDto guestCartOperationDto)
         {
@@ -281,7 +299,7 @@ namespace API.Controllers
 
                 var result = await _cartService.IncreaseGuestAmount(guestId, variantId);
 
-                if (!result.Success)
+                if (!result.isSucess)
                 {
                     _logger.LogWarning("Failed to increase the amount for guest {GuestId}: {Message}", guestId, result.Message);
                     return BadRequest(result.Message);
@@ -300,7 +318,7 @@ namespace API.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPut]
         [Route("DecreaseGuestAmount")]
         public async Task<IActionResult> DecreaseGuestAmount([FromBody] GuestCartOperationDto guestCartOperationDto)
         {
@@ -315,7 +333,7 @@ namespace API.Controllers
 
                 var result = await _cartService.DecreaseGuestAmount(guestId, variantId);
 
-                if (!result.Success)
+                if (!result.isSucess)
                 {
                     _logger.LogWarning("Failed to decrease the amount for guestId {GuestId}: {Message}", guestId, result.Message);
                     return BadRequest(result.Message);
@@ -334,6 +352,38 @@ namespace API.Controllers
             }
         }
 
+        [HttpDelete]
+        [Route("RemoveGuestItem/{guestId}/{variantId}")]
+        public async Task<IActionResult> RemoveGuestItem(string guestId, int variantId)
+        {
+            _logger.LogInformation("RemoveGuestItem endpoint called - VariantId: {VariantId}", variantId);
+
+            try
+            {
+                _logger.LogDebug("Guest {GuestId} attempting remove the itme: {variantId}", guestId, variantId);
+
+                var result = await _cartService.RemoveGuestItem(guestId, variantId);
+
+                if (!result.isSucess)
+                {
+                    _logger.LogWarning("Failed to remove the item for guestId {GuestId}: {Message}", guestId, result.Message);
+                    return BadRequest(result.Message);
+                }
+
+                _logger.LogInformation("Successfully remove the item for guestId {GuestId}", guestId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in RemoveGuestItem endpoint");
+                return BadRequest(new
+                {
+                    Message = ex.Message,
+                });
+            }
+        }
+
+
         [HttpPost]
         [Authorize]
         [Route("Merge")]
@@ -350,7 +400,7 @@ namespace API.Controllers
 
                 var result = await _cartService.Merge(userId, guestId);
 
-                if (!result.Success)
+                if (!result.isSucess)
                 {
                     _logger.LogWarning("Failed to Merge {GuestId} and {UserId}: {Message}", guestId, userId, result.Message);
                     return BadRequest(result.Message);

@@ -15,25 +15,28 @@ namespace API.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
+        private readonly IMapper _mapper;
 
-        public ProductController(IProductService productService)
+        public ProductController(IProductService productService, IMapper mapper)
         {
             _productService = productService;
+            _mapper = mapper;
         }
 
         [HttpGet]
         [Route("Products/{langId}")]
         public async Task<IActionResult> GetAllProducts(int langId, [FromQuery] ProductFilterDto filterDto)
         {
-            var productDto = await _productService.GetFilteredProductsAsync(langId, filterDto);
+            var products = await _productService.GetFilteredProductsAsync(langId, filterDto);
+            var productDto = _mapper.MapToDtoList(products.Data.Items, langId);
 
             return Ok(new
             {
-                items = productDto.Data.Items,
-                totalCount = productDto.Data.TotalCount,
+                items = productDto,
+                totalCount = products.Data.TotalCount,
                 pageNumber = filterDto.PageNumber,
                 pageSize = filterDto.PageSize,
-                totalPages = (int)Math.Ceiling(productDto.Data.TotalCount / (double)filterDto.PageSize)
+                totalPages = (int)Math.Ceiling(products.Data.TotalCount / (double)filterDto.PageSize)
             });
         }
 
@@ -43,12 +46,14 @@ namespace API.Controllers
         {
             var product = await _productService.GetProductById(id, langId);
 
-            if (!product.Success)
+            if (!product.isSucess)
             {
                 return NotFound(product.Message);
             }
 
-            return Ok(product.Data);
+            var productDto = _mapper.MapToDto(product.Data, langId);
+
+            return Ok(productDto);
         }
     }
 }

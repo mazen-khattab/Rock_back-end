@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.Responses;
+using Core.Entities;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,9 +16,9 @@ namespace Application.Interfaces
         /// </summary>
         /// <param name="userId">The unique identifier of the authenticated user.</param>
         /// <returns>
-        /// An ApiResponse containing a collection of CartDto representing the user's cart items.
+        /// An <see cref="ApiResponse{T}"/> containing a collection of CartDto representing the user's cart items.
         /// </returns>
-        Task<ApiResponse<IEnumerable<CartDto>>> GetUserCart(int userId, int langId);
+        Task<ApiResponse<IEnumerable<UserCart>>> GetUserCart(int userId, int langId);
 
 
         /// <summary>
@@ -28,7 +29,7 @@ namespace Application.Interfaces
         /// <param name="variantId">The identifier of the product variant to add.</param>
         /// <param name="quantity">The quantity to add.</param>
         /// <returns>
-        /// An ApiResponse containing the operation result message.
+        /// An <see cref="ApiResponse{T}"/> containing the operation result message.
         /// </returns>
         Task<ApiResponse<string>> AddToUserCart(int userId, int variantId, int quantity);
 
@@ -39,7 +40,7 @@ namespace Application.Interfaces
         /// <param name="userId">The unique identifier of the authenticated user.</param>
         /// <param name="variantId">The identifier of the product variant.</param>
         /// <returns>
-        /// An ApiResponse containing the operation result message.
+        /// An <see cref="ApiResponse{T}"/> containing the operation result message.
         /// </returns>
         Task<ApiResponse<string>> IncreaseUserAmount(int userId, int variantId);
 
@@ -51,7 +52,7 @@ namespace Application.Interfaces
         /// <param name="userId">The unique identifier of the authenticated user.</param>
         /// <param name="variantId">The identifier of the product variant.</param>
         /// <returns>
-        /// An ApiResponse containing the operation result message.
+        /// An <see cref="ApiResponse{T}"/> containing the operation result message.
         /// </returns>
         Task<ApiResponse<string>> DecreaseUserAmount(int userId, int variantId);
 
@@ -62,7 +63,7 @@ namespace Application.Interfaces
         /// <param name="userId">The unique identifier of the authenticated user.</param>
         /// <param name="variantId">The identifier of the product variant to remove.</param>
         /// <returns>
-        /// An ApiResponse containing the operation result message.
+        /// An <see cref="ApiResponse{T}"/> containing the operation result message.
         /// </returns>
         Task<ApiResponse<string>> RemoveUserItem(int userId, int variantId);
 
@@ -76,9 +77,9 @@ namespace Application.Interfaces
         /// </summary>
         /// <param name="guestId">The unique identifier of the guest.</param>
         /// <returns>
-        /// An ApiResponse containing a collection of CartDto representing the guest's cart items.
+        /// An <see cref="ApiResponse{T}"/> containing a collection of CartDto representing the guest's cart items.
         /// </returns>
-        Task<ApiResponse<IEnumerable<CartDto>>> GetGuestCart(string guestId, int langId);
+        Task<ApiResponse<IEnumerable<GuestCart>>> GetGuestCart(string guestId, int langId);
 
 
         /// <summary>
@@ -89,7 +90,7 @@ namespace Application.Interfaces
         /// <param name="variantId">The identifier of the product variant to add.</param>
         /// <param name="quantity">The quantity to add.</param>
         /// <returns>
-        /// An ApiResponse containing the operation result message.
+        /// An <see cref="ApiResponse{T}"/> containing the operation result message.
         /// </returns>
         Task<ApiResponse<string>> AddToGuestCart(string guestId, int variantId, int quantity);
 
@@ -100,7 +101,7 @@ namespace Application.Interfaces
         /// <param name="guestId">The unique identifier of the guest.</param>
         /// <param name="variantId">The identifier of the product variant.</param>
         /// <returns>
-        /// An ApiResponse containing the operation result message.
+        /// An <see cref="ApiResponse{T}"/> containing the operation result message.
         /// </returns>
         Task<ApiResponse<string>> IncreaseGuestAmount(string guestId, int variantId);
 
@@ -112,7 +113,7 @@ namespace Application.Interfaces
         /// <param name="guestId">The unique identifier of the guest.</param>
         /// <param name="variantId">The identifier of the product variant.</param>
         /// <returns>
-        /// An ApiResponse containing the operation result message.
+        /// An <see cref="ApiResponse{T}"/> containing the operation result message.
         /// </returns>
         Task<ApiResponse<string>> DecreaseGuestAmount(string guestId, int variantId);
 
@@ -123,7 +124,7 @@ namespace Application.Interfaces
         /// <param name="guestId">The unique identifier of the guest.</param>
         /// <param name="variantId">The identifier of the product variant to remove.</param>
         /// <returns>
-        /// An ApiResponse containing the operation result message.
+        /// An <see cref="ApiResponse{T}"/> containing the operation result message.
         /// </returns>
         Task<ApiResponse<string>> RemoveGuestItem(string guestId, int variantId);
 
@@ -133,11 +134,13 @@ namespace Application.Interfaces
         /// after a successful login. Existing items are merged by increasing their quantities.
         /// The guest cart is cleared after the merge operation.
         /// </summary>
+        /// <param name="userId">The unique identifier of the authenticated user.</param>
         /// <param name="guestId">The unique identifier of the guest cart to merge.</param>
+        /// <param name="ignoreTransaction"></param>
         /// <returns>
-        /// An ApiResponse containing the updated collection of CartDto for the authenticated user.
+        /// An <see cref="ApiResponse{T}"/> containing the updated collection of CartDto for the authenticated user.
         /// </returns>
-        Task<ApiResponse<IEnumerable<CartDto>>> Merge(int userId, string guestId);
+        Task<ApiResponse<IEnumerable<UserCart>>> Merge(int userId, string guestId, bool ignoreTransaction = false);
 
     }
 }

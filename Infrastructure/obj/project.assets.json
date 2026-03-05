@@ -4835,11 +4835,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Infrastructure.csproj",
+      "projectUniqueName": "E:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Infrastructure.csproj",
       "projectName": "Infrastructure",
-      "projectPath": "D:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Infrastructure.csproj",
+      "projectPath": "E:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Infrastructure.csproj",
       "packagesPath": "C:\\Users\\mazen\\.nuget\\packages\\",
-      "outputPath": "D:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\obj\\",
+      "outputPath": "E:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -4860,11 +4860,11 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "D:\\Mazen\\Rock\\Rock_back-end\\Application\\Application.csproj": {
-              "projectPath": "D:\\Mazen\\Rock\\Rock_back-end\\Application\\Application.csproj"
+            "E:\\Mazen\\Rock\\Rock_back-end\\Application\\Application.csproj": {
+              "projectPath": "E:\\Mazen\\Rock\\Rock_back-end\\Application\\Application.csproj"
             },
-            "D:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj": {
-              "projectPath": "D:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj"
+            "E:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj": {
+              "projectPath": "E:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj"
             }
           }
         }

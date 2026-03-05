@@ -12,22 +12,15 @@ using System.Text;
 
 namespace Application.Services
 {
-    public class ProductService : IProductService
+    public class ProductService : Services<Product>, IProductService
     {
-        private readonly IRepo<Product> _productRepo;
-        private readonly ILogger<ProductService> _logger;
-
-        public ProductService(IRepo<Product> productRepo, ILogger<ProductService> logger)
-        {
-            _productRepo = productRepo;
-            _logger = logger;
-        }
+        public ProductService(IUnitOfWork unitOfWork, IRepo<Product> productRepo, ILogger<ProductService> logger) : base(unitOfWork, productRepo, logger) { }
 
         public IQueryable<Product> GetProductsWithIncludes(int languageId)
         {
             _logger.LogDebug("Building product query for language {LanguageId}", languageId);
 
-            var products = _productRepo.Query(filter: p => p.Translations.Any(t => t.LanguageId == languageId), tracked: false)
+            var products = Query(filter: p => p.Translations.Any(t => t.LanguageId == languageId), tracked: false)
             .Include(p => p.Category)
                 .ThenInclude(c => c.Translations.Where(t => t.LanguageId == languageId))
             .Include(p => p.Translations.Where(t => t.LanguageId == languageId))
@@ -43,7 +36,7 @@ namespace Application.Services
             return products;
         }
 
-        public async Task<ApiResponse<(IEnumerable<ProductsDto> Items, int TotalCount)>> GetFilteredProductsAsync(int languageId, ProductFilterDto filterDto)
+        public async Task<ApiResponse<(IEnumerable<Product> Items, int TotalCount)>> GetFilteredProductsAsync(int languageId, ProductFilterDto filterDto)
         {
             var query = GetProductsWithIncludes(languageId);
 
@@ -63,12 +56,10 @@ namespace Application.Services
                 .Take(pageSize)
                 .ToListAsync();
 
-            var dtos = Mapper.MapToDtoList(items, languageId);
-
-            return new ApiResponse<(IEnumerable<ProductsDto> Items, int TotalCount)>()
+            return new ApiResponse<(IEnumerable<Product> Items, int TotalCount)>()
             {
-                Success = true,
-                Data = (dtos,  totalCount)
+                isSucess = true,
+                Data = (items,  totalCount)
             };
         }
 
@@ -95,7 +86,7 @@ namespace Application.Services
             return query;
         }
 
-        public async Task<ApiResponse<ProductsDto>> GetProductById(int id, int langId)
+        public async Task<ApiResponse<Product>> GetProductById(int id, int langId)
         {
             var productWithIncludes = GetProductsWithIncludes(langId);
 
@@ -103,20 +94,18 @@ namespace Application.Services
 
             if (product == null)
             {
-                return new ApiResponse<ProductsDto>()
+                return new ApiResponse<Product>()
                 {
-                    Success = false,
+                    isSucess = false,
                     Message = "product not found",
                     Data = null
                 };
             }
 
-            var productDto = Mapper.MapToDto(product, langId);
-
-            return new ApiResponse<ProductsDto>()
+            return new ApiResponse<Product>()
             {
-                Success = true,
-                Data = productDto,
+                isSucess = true,
+                Data = product,
             };
         }
     }

@@ -8,6 +8,7 @@ namespace Core.Entities
     public class Order : BaseEntity, ISoftDelete
     {
         public int UserId { get; set; }
+        public string Number { get; set; } = string.Empty;
         public decimal TotalPrice { get; set; }
         public string FullAddress { get; set; } = string.Empty;
         public string Governorate { get; set; } = string.Empty;

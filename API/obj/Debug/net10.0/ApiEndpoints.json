@@ -103,7 +103,7 @@
     "ContainingType": "API.Controllers.CartController",
     "Method": "DecreaseGuestAmount",
     "RelativePath": "api/Cart/DecreaseGuestAmount",
-    "HttpMethod": "POST",
+    "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,
     "Parameters": [
@@ -119,7 +119,7 @@
     "ContainingType": "API.Controllers.CartController",
     "Method": "DecreaseUserAmount",
     "RelativePath": "api/Cart/DecreaseUserAmount",
-    "HttpMethod": "POST",
+    "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,
     "Parameters": [
@@ -172,7 +172,7 @@
     "ContainingType": "API.Controllers.CartController",
     "Method": "IncreaseGuestAmount",
     "RelativePath": "api/Cart/IncreaseGuestAmount",
-    "HttpMethod": "POST",
+    "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,
     "Parameters": [
@@ -188,7 +188,7 @@
     "ContainingType": "API.Controllers.CartController",
     "Method": "IncreaseUserAmount",
     "RelativePath": "api/Cart/IncreaseUserAmount",
-    "HttpMethod": "POST",
+    "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,
     "Parameters": [
@@ -218,15 +218,52 @@
   },
   {
     "ContainingType": "API.Controllers.CartController",
+    "Method": "RemoveGuestItem",
+    "RelativePath": "api/Cart/RemoveGuestItem/{guestId}/{variantId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "guestId",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "variantId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.CartController",
     "Method": "RemoveUserItem",
-    "RelativePath": "api/Cart/RemoveUserItem",
+    "RelativePath": "api/Cart/RemoveUserItem/{variantId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "variantId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.OrderController",
+    "Method": "Checkout",
+    "RelativePath": "api/Order/checkout",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "cartOperationDto",
-        "Type": "Application.DTOs.UserCartOperationDto",
+        "Name": "request",
+        "Type": "Application.DTOs.CheckoutRequestDto",
         "IsRequired": true
       }
     ],

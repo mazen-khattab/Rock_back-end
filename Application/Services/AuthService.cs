@@ -87,7 +87,7 @@ namespace Application.Services
                 return new AuthServiceResponse
                 {
                     IsSuccess = false,
-                    Message = "Invalid Cedentials."
+                    Message = "Invalid Credentials."
                 };
             }
 
@@ -255,7 +255,8 @@ namespace Application.Services
             _logger.LogInformation("Refresh token id {0} for user: {1}", DbToken?.Id.ToString(), user.Id.ToString());
 
             await _refreshToken.AddAsync(refreshToken);
-            await _refreshToken.SaveChangesAsync();
+            int isSaved = await _refreshToken.SaveChangesAsync();
+            _logger.LogInformation("[CreateRefreshToken] saved value: {value}", isSaved);
 
             _logger.LogInformation("Refresh token created and saved for user: {UserId}", user.Id);
 
@@ -290,7 +291,8 @@ namespace Application.Services
             _logger.LogInformation("Refresh token validated for user: {UserId}", DBToken.UserId);
 
             DBToken.ExpDate = DateTime.Now;
-            await _refreshToken.SaveChangesAsync(); 
+            int isSaved = await _refreshToken.SaveChangesAsync();
+            _logger.LogInformation("[ValidateRefreshToken] saved value: {value}", isSaved);
 
             return new AuthServiceResponse()
             {
@@ -395,7 +397,8 @@ namespace Application.Services
 
             // Mark token expired instead of deleting — works with available Services API
             dbToken.ExpDate = DateTime.Now;
-            await _refreshToken.SaveChangesAsync();
+            int isSaved = await _refreshToken.SaveChangesAsync();
+            _logger.LogInformation("[Logout] saved value: {value}", isSaved);
 
             _logger.LogInformation("Refresh token revoked for user: {UserId}", dbToken.UserId);
 

@@ -1,0 +1,138 @@
+﻿using Application.DTOs;
+using Application.Interfaces;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+
+namespace API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class OrderController : ControllerBase
+    {
+        private readonly IOrderService _orderService;
+        private readonly ILogger<OrderController> _logger;
+
+        public OrderController(IOrderService orderService, ILogger<OrderController> logger)
+        {
+            _orderService = orderService;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Processes a complete checkout workflow including order creation, 
+        /// inventory reservation, and transaction management.
+        /// 
+        /// Workflow:
+        /// 1. Validates idempotency to prevent duplicate orders
+        /// 2. Authenticates user (existing or guest login)
+        /// 3. Merges guest cart if applicable
+        /// 4. Validates inventory availability
+        /// 5. Creates order and order details
+        /// 6. Reserves product variants
+        /// 7. Records inventory transactions
+        /// 8. Commits or rolls back transaction atomically
+        /// </summary>
+        /// <param name="request">Checkout request containing user, cart, and shipping information</param>
+        /// <returns>
+        /// 200 OK: Order created successfully with OrderId, OrderNumber, TotalPrice, and CreatedAt timestamp
+        /// 400 Bad Request: Validation errors or insufficient inventory
+        /// 409 Conflict: Empty cart or other checkout conflicts
+        /// 500 Internal Server Error: Database or processing errors
+        /// </returns>
+        [HttpPost("checkout")]
+        [ProducesResponseType(typeof(Application.Responses.ApiResponse<CheckoutResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Application.Responses.ApiResponse<CheckoutResponseDto>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Application.Responses.ApiResponse<CheckoutResponseDto>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<Application.Responses.ApiResponse<CheckoutResponseDto>>> Checkout([FromBody] CheckoutRequestDto request)
+        {
+            _logger.LogInformation("Checkout endpoint called with IdempotencyKey: {IdempotencyKey}, Email: {Email}", 
+                request.IdempotencyKey, request.Email);
+
+            // Validate request
+            if (request == null)
+            {
+                _logger.LogWarning("Checkout request is null");
+                return BadRequest(new Application.Responses.ApiResponse<CheckoutResponseDto>
+                {
+                    Success = false,
+                    Message = "Request cannot be null"
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.IdempotencyKey))
+            {
+                _logger.LogWarning("IdempotencyKey is missing");
+                return BadRequest(new Application.Responses.ApiResponse<CheckoutResponseDto>
+                {
+                    Success = false,
+                    Message = "IdempotencyKey is required"
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Email))
+            {
+                _logger.LogWarning("Email is missing");
+                return BadRequest(new Application.Responses.ApiResponse<CheckoutResponseDto>
+                {
+                    Success = false,
+                    Message = "Email is required"
+                });
+            }
+
+            if (!request.IsAuthenticated && string.IsNullOrWhiteSpace(request.Password))
+            {
+                _logger.LogWarning("Password is required for guest checkout");
+                return BadRequest(new Application.Responses.ApiResponse<CheckoutResponseDto>
+                {
+                    Success = false,
+                    Message = "Password is required for guest checkout"
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Address))
+            {
+                _logger.LogWarning("Address is required");
+                return BadRequest(new Application.Responses.ApiResponse<CheckoutResponseDto>
+                {
+                    Success = false,
+                    Message = "Address is required"
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.City))
+            {
+                _logger.LogWarning("City is required");
+                return BadRequest(new Application.Responses.ApiResponse<CheckoutResponseDto>
+                {
+                    Success = false,
+                    Message = "City is required"
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Governorate))
+            {
+                _logger.LogWarning("Governorate is required");
+                return BadRequest(new Application.Responses.ApiResponse<CheckoutResponseDto>
+                {
+                    Success = false,
+                    Message = "Governorate is required"
+                });
+            }
+
+            // Process checkout
+            var response = await _orderService.ProcessCheckoutAsync(request);
+
+            if (!response.Success)
+            {
+                _logger.LogWarning("Checkout failed: {Message}", response.Message);
+                return BadRequest(response);
+            }
+
+            _logger.LogInformation("Checkout completed successfully: OrderId: {OrderId}, OrderNumber: {OrderNumber}", 
+                response.Data?.OrderId, response.Data?.OrderNumber);
+
+            return Ok(response);
+        }
+    }
+}

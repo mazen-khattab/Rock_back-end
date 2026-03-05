@@ -193,7 +193,7 @@
       }
     },
     "/api/Cart/IncreaseUserAmount": {
-      "post": {
+      "put": {
         "tags": [
           "Cart"
         ],
@@ -225,7 +225,7 @@
       }
     },
     "/api/Cart/DecreaseUserAmount": {
-      "post": {
+      "put": {
         "tags": [
           "Cart"
         ],
@@ -256,31 +256,26 @@
         }
       }
     },
-    "/api/Cart/RemoveUserItem": {
-      "post": {
+    "/api/Cart/RemoveUserItem/{variantId}": {
+      "delete": {
         "tags": [
           "Cart"
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserCartOperationDto"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserCartOperationDto"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserCartOperationDto"
-              }
+        "parameters": [
+          {
+            "name": "variantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
             }
-          },
-          "required": true
-        },
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -356,7 +351,7 @@
       }
     },
     "/api/Cart/IncreaseGuestAmount": {
-      "post": {
+      "put": {
         "tags": [
           "Cart"
         ],
@@ -388,7 +383,7 @@
       }
     },
     "/api/Cart/DecreaseGuestAmount": {
-      "post": {
+      "put": {
         "tags": [
           "Cart"
         ],
@@ -419,6 +414,41 @@
         }
       }
     },
+    "/api/Cart/RemoveGuestItem/{guestId}/{variantId}": {
+      "delete": {
+        "tags": [
+          "Cart"
+        ],
+        "parameters": [
+          {
+            "name": "guestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "variantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Cart/Merge": {
       "post": {
         "tags": [
@@ -439,6 +469,38 @@
             "application/*+json": {
               "schema": {
                 "$ref": "#/components/schemas/MergeCartDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Order/checkout": {
+      "post": {
+        "tags": [
+          "Order"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutRequestDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutRequestDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutRequestDto"
               }
             }
           },
@@ -611,6 +673,53 @@
           }
         }
       },
+      "CheckoutRequestDto": {
+        "required": [
+          "firstName",
+          "lastName",
+          "phone",
+          "governorate",
+          "city",
+          "address",
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "governorate": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "isAuthenticated": {
+            "type": "boolean"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "guestId": {
+            "type": "string"
+          }
+        }
+      },
       "GuestCartOperationDto": {
         "type": "object",
         "properties": {
@@ -709,6 +818,9 @@
     },
     {
       "name": "Cart"
+    },
+    {
+      "name": "Order"
     },
     {
       "name": "Product"

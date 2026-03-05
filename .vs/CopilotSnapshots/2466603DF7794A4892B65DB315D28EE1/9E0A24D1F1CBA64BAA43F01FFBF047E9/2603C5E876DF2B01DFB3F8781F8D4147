@@ -1,0 +1,13 @@
+﻿using Application.DTOs;
+using Application.Responses;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Application.Interfaces
+{
+    public interface IOrderService
+    {
+        Task<ApiResponse<string>> ProcessCheckoutAsync(CheckoutRequestDto request);
+    }
+}

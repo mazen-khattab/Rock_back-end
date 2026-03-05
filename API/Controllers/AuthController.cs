@@ -85,7 +85,7 @@ namespace API.Controllers
 
                 return Ok(new ApiResponse<UserInfoDto>
                 {
-                    Success = true,
+                    isSucess = true,
                     Message = "Login successful",
                     Data = new UserInfoDto
                     {
@@ -120,7 +120,7 @@ namespace API.Controllers
 
                 return Ok(new ApiResponse<UserInfoDto>
                 {
-                    Success = true,
+                    isSucess = true,
                     Message = "Login successful",
                     Data = new UserInfoDto
                     {
@@ -168,7 +168,7 @@ namespace API.Controllers
 
             return Ok(new ApiResponse<UserInfoDto>
             {
-                Success = true,
+                isSucess = true,
                 Message = "Tokens refreshed",
                 Data = new UserInfoDto
                 {
@@ -226,7 +226,7 @@ namespace API.Controllers
 
                     return Ok(new ApiResponse<string>()
                     {
-                        Success = false,
+                        isSucess = false,
                         Message = result.Message
                     });
                 }
@@ -235,7 +235,7 @@ namespace API.Controllers
 
                 return Ok(new ApiResponse<string>()
                 {
-                    Success = true,
+                    isSucess = true,
                     Message = result.Message
                 });
             }

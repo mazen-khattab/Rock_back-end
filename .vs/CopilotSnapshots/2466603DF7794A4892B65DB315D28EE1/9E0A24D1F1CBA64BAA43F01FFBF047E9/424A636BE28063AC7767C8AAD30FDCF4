@@ -1,0 +1,384 @@
+﻿using Application.DTOs;
+using Application.Interfaces;
+using Application.Responses;
+using Core.Entities;
+using Core.Enums;
+using Core.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+
+namespace Application.Services
+{
+    public class OrderService : IOrderService
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IServices<Order> _orderService;
+        private readonly IServices<OrderDetail> _orderDetailService;
+        private readonly IServices<UserCart> _userCartService;
+        private readonly IServices<GuestCart> _guestCartService;
+        private readonly IServices<Variant> _variantService;
+        private readonly IServices<InventoryTransaction> _inventoryTransactionService;
+        private readonly UserManager<User> _userManager;
+        private readonly IAuthService _authService;
+        private readonly ILogger<OrderService> _logger;
+
+        public OrderService(
+            IUnitOfWork unitOfWork,
+            IServices<Order> orderService,
+            IServices<OrderDetail> orderDetailService,
+            IServices<UserCart> userCartService,
+            IServices<GuestCart> guestCartService,
+            IServices<Variant> variantService,
+            IServices<InventoryTransaction> inventoryTransactionService,
+            UserManager<User> userManager,
+            IAuthService authService,
+            ILogger<OrderService> logger)
+        {
+            _unitOfWork = unitOfWork;
+            _orderService = orderService;
+            _orderDetailService = orderDetailService;
+            _userCartService = userCartService;
+            _guestCartService = guestCartService;
+            _variantService = variantService;
+            _inventoryTransactionService = inventoryTransactionService;
+            _userManager = userManager;
+            _authService = authService;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Processes checkout with complete order creation workflow including:
+        /// - Transaction management
+        /// - Idempotency check
+        /// - User authentication handling
+        /// - Guest cart merge
+        /// - Order and OrderDetails creation
+        /// - Variant reservation with stock validation
+        /// - Inventory transaction recording
+        /// </summary>
+        /// <param name="request">Checkout request with cart, user, and order details</param>
+        /// <returns>API response with order ID and creation timestamp</returns>
+        public async Task<ApiResponse<CheckoutResponseDto>> ProcessCheckoutAsync(CheckoutRequestDto request)
+        {
+            _logger.LogInformation("Checkout process started with IdempotencyKey: {IdempotencyKey}", request.IdempotencyKey);
+
+            try
+            {
+                // STEP 1 - START DATABASE TRANSACTION
+                _logger.LogInformation("Step 1: Beginning database transaction");
+                await _unitOfWork.BeginTransactionAsync();
+
+                // STEP 2 - IDEMPOTENCY CHECK
+                _logger.LogInformation("Step 2: Checking for existing order with IdempotencyKey: {IdempotencyKey}", request.IdempotencyKey);
+                var existingOrder = await _orderService.GetAsync(
+                    filter: o => o.Number == request.IdempotencyKey,
+                    tracked: false);
+
+                if (existingOrder != null)
+                {
+                    _logger.LogWarning("Idempotent request: Order already exists with IdempotencyKey: {IdempotencyKey}, OrderId: {OrderId}", 
+                        request.IdempotencyKey, existingOrder.Id);
+
+                    await _unitOfWork.CommitAsync();
+
+                    return new ApiResponse<CheckoutResponseDto>()
+                    {
+                        Success = true,
+                        Message = "Order already exists (Idempotent request)",
+                        Data = new CheckoutResponseDto
+                        {
+                            OrderId = existingOrder.Id,
+                            OrderNumber = existingOrder.Number,
+                            CreatedAt = existingOrder.CreatedAt,
+                            TotalPrice = existingOrder.TotalPrice
+                        }
+                    };
+                }
+
+                User? user = null;
+
+                // STEP 3 - AUTHENTICATION HANDLING
+                _logger.LogInformation("Step 3: Authentication handling - IsAuthenticated: {IsAuthenticated}", request.IsAuthenticated);
+
+                if (request.IsAuthenticated)
+                {
+                    // Get current user from JWT claims (to be passed from controller)
+                    _logger.LogInformation("User is authenticated, retrieving user from database");
+                    // Note: Controller should pass userId via claims or separate parameter
+                    // For now, we'll use email from request to find user
+                    user = await _userManager.FindByEmailAsync(request.Email);
+
+                    if (user == null)
+                    {
+                        _logger.LogError("Authenticated user not found with email: {Email}", request.Email);
+                        await _unitOfWork.RollbackAsync();
+
+                        return new ApiResponse<CheckoutResponseDto>()
+                        {
+                            Success = false,
+                            Message = "User not found"
+                        };
+                    }
+                }
+                else
+                {
+                    // Attempt login using email + password
+                    _logger.LogInformation("User is not authenticated, attempting login with email: {Email}", request.Email);
+
+                    var loginDto = new LoginDto
+                    {
+                        Email = request.Email,
+                        Password = request.Password
+                    };
+
+                    var loginResponse = await _authService.Login(loginDto);
+
+                    if (!loginResponse.IsSuccess)
+                    {
+                        _logger.LogWarning("Login failed during checkout for email: {Email}", request.Email);
+                        await _unitOfWork.RollbackAsync();
+
+                        return new ApiResponse<CheckoutResponseDto>()
+                        {
+                            Success = false,
+                            Message = loginResponse.Message
+                        };
+                    }
+
+                    // Get user from database after successful login
+                    user = await _userManager.FindByEmailAsync(request.Email);
+
+                    if (user == null)
+                    {
+                        _logger.LogError("User not found after successful login: {Email}", request.Email);
+                        await _unitOfWork.RollbackAsync();
+
+                        return new ApiResponse<CheckoutResponseDto>()
+                        {
+                            Success = false,
+                            Message = "User not found after login"
+                        };
+                    }
+                }
+
+                _logger.LogInformation("User authenticated: UserId: {UserId}, Email: {Email}", user.Id, user.Email);
+
+                // STEP 4 - CART HANDLING
+                _logger.LogInformation("Step 4: Cart handling - GuestId: {GuestId}", request.GuestId);
+
+                if (!string.IsNullOrEmpty(request.GuestId))
+                {
+                    // Merge guest cart into user cart
+                    _logger.LogInformation("Merging guest cart (GuestId: {GuestId}) into user cart (UserId: {UserId})", 
+                        request.GuestId, user.Id);
+
+                    var guestCartItems = await _guestCartService.GetAllAsync(
+                        filter: c => c.GuestId == request.GuestId,
+                        tracked: true);
+
+                    foreach (var guestCart in guestCartItems)
+                    {
+                        var existingUserCart = await _userCartService.GetAsync(
+                            filter: c => c.UserId == user.Id && c.VariantId == guestCart.VariantId,
+                            tracked: true);
+
+                        if (existingUserCart != null)
+                        {
+                            existingUserCart.Quantity += guestCart.Quantity;
+                            await _userCartService.UpdateAsync(existingUserCart);
+                            _logger.LogDebug("Updated existing user cart item - VariantId: {VariantId}, NewQuantity: {Quantity}", 
+                                guestCart.VariantId, existingUserCart.Quantity);
+                        }
+                        else
+                        {
+                            var newUserCart = new UserCart
+                            {
+                                UserId = user.Id,
+                                VariantId = guestCart.VariantId,
+                                Quantity = guestCart.Quantity,
+                                CreatedAt = DateTime.UtcNow
+                            };
+
+                            await _userCartService.AddAsync(newUserCart);
+                            _logger.LogDebug("Created new user cart item - VariantId: {VariantId}, Quantity: {Quantity}", 
+                                guestCart.VariantId, guestCart.Quantity);
+                        }
+
+                        await _guestCartService.DeleteAsync(guestCart);
+                    }
+
+                    _logger.LogInformation("Guest cart merged successfully - Total items: {ItemCount}", guestCartItems.Count());
+                }
+
+                // Retrieve user cart items
+                var userCartItems = await _userCartService.GetAllAsync(
+                    filter: c => c.UserId == user.Id,
+                    tracked: true,
+                    includes: c => c.Variant);
+
+                if (!userCartItems.Any())
+                {
+                    _logger.LogWarning("User cart is empty for UserId: {UserId}", user.Id);
+                    await _unitOfWork.RollbackAsync();
+
+                    return new ApiResponse<CheckoutResponseDto>()
+                    {
+                        Success = false,
+                        Message = "Cart is empty"
+                    };
+                }
+
+                // STEP 5 - CREATE ORDER
+                _logger.LogInformation("Step 5: Creating order for UserId: {UserId} with {ItemCount} cart items", 
+                    user.Id, userCartItems.Count());
+
+                var orderNumber = $"ORD-{request.IdempotencyKey}";
+                decimal totalOrderPrice = 0;
+
+                var order = new Order
+                {
+                    UserId = user.Id,
+                    Number = orderNumber,
+                    Status = OrderStatus.Pending,
+                    FullAddress = request.Address,
+                    Governorate = request.Governorate,
+                    City = request.City,
+                    CreatedAt = DateTime.UtcNow,
+                    TotalPrice = 0, // Will be calculated
+                    OrderDetails = new List<OrderDetail>()
+                };
+
+                // STEP 6 - VARIANT RESERVATION & CREATE ORDER DETAILS
+                _logger.LogInformation("Step 6: Processing variant reservations and creating order details");
+
+                foreach (var cartItem in userCartItems)
+                {
+                    var variant = cartItem.Variant;
+
+                    _logger.LogInformation("Processing variant - VariantId: {VariantId}, Requested Qty: {RequestedQty}, Available: {AvailableQty}", 
+                        variant.Id, cartItem.Quantity, variant.Quantity);
+
+                    // Check stock availability
+                    if (variant.Quantity < cartItem.Quantity)
+                    {
+                        _logger.LogError("Insufficient stock - VariantId: {VariantId}, Available: {Available}, Requested: {Requested}", 
+                            variant.Id, variant.Quantity, cartItem.Quantity);
+
+                        await _unitOfWork.RollbackAsync();
+
+                        return new ApiResponse<CheckoutResponseDto>()
+                        {
+                            Success = false,
+                            Message = $"Insufficient stock for variant {variant.Id}. Available: {variant.Quantity}, Requested: {cartItem.Quantity}"
+                        };
+                    }
+
+                    // Reserve the variant
+                    variant.Quantity -= cartItem.Quantity;
+                    variant.Reserved += cartItem.Quantity;
+                    await _variantService.UpdateAsync(variant);
+
+                    _logger.LogDebug("Variant reserved - VariantId: {VariantId}, NewQuantity: {NewQty}, NewReserved: {NewReserved}", 
+                        variant.Id, variant.Quantity, variant.Reserved);
+
+                    // Get product price (assuming Variant has access to Product)
+                    var product = variant.Product;
+                    decimal unitPrice = product?.Price ?? 0;
+                    decimal itemTotalPrice = unitPrice * cartItem.Quantity;
+                    totalOrderPrice += itemTotalPrice;
+
+                    // Create order detail
+                    var orderDetail = new OrderDetail
+                    {
+                        OrderId = order.Id,
+                        VariantId = variant.Id,
+                        Quantity = cartItem.Quantity,
+                        UnitPrice = unitPrice,
+                        Discount = 0, // Can be enhanced with discount logic
+                        TotalPrice = itemTotalPrice
+                    };
+
+                    order.OrderDetails.Add(orderDetail);
+                    _logger.LogInformation("Order detail created - VariantId: {VariantId}, Qty: {Qty}, Price: {Price}", 
+                        variant.Id, cartItem.Quantity, itemTotalPrice);
+                }
+
+                order.TotalPrice = totalOrderPrice;
+                await _orderService.AddAsync(order);
+
+                _logger.LogInformation("Order created - OrderId: {OrderId}, OrderNumber: {OrderNumber}, TotalPrice: {TotalPrice}", 
+                    order.Id, order.Number, order.TotalPrice);
+
+                // STEP 7 - SAVE INVENTORY TRANSACTION RECORD
+                _logger.LogInformation("Step 7: Recording inventory transactions");
+
+                foreach (var cartItem in userCartItems)
+                {
+                    var inventoryTransaction = new InventoryTransaction
+                    {
+                        OrderId = order.Id,
+                        UserId = user.Id,
+                        VariantId = cartItem.VariantId,
+                        Quantity = cartItem.Quantity,
+                        TransactionType = InventoryTransactionType.Sale,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    await _inventoryTransactionService.AddAsync(inventoryTransaction);
+                    _logger.LogDebug("Inventory transaction recorded - VariantId: {VariantId}, Qty: {Qty}, Type: Sale", 
+                        cartItem.VariantId, cartItem.Quantity);
+                }
+
+                // Clear user cart after successful order creation
+                foreach (var cartItem in userCartItems)
+                {
+                    await _userCartService.DeleteAsync(cartItem);
+                }
+
+                _logger.LogInformation("User cart cleared - UserId: {UserId}", user.Id);
+
+                // STEP 9 - COMMIT TRANSACTION
+                _logger.LogInformation("Step 9: Committing transaction");
+                await _unitOfWork.SaveChanges();
+                await _unitOfWork.CommitAsync();
+
+                _logger.LogInformation("Checkout completed successfully - OrderId: {OrderId}, OrderNumber: {OrderNumber}", 
+                    order.Id, order.Number);
+
+                return new ApiResponse<CheckoutResponseDto>()
+                {
+                    Success = true,
+                    Message = "Order created successfully",
+                    Data = new CheckoutResponseDto
+                    {
+                        OrderId = order.Id,
+                        OrderNumber = order.Number,
+                        CreatedAt = order.CreatedAt,
+                        TotalPrice = order.TotalPrice
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Checkout process failed");
+
+                try
+                {
+                    await _unitOfWork.RollbackAsync();
+                    _logger.LogInformation("Transaction rolled back successfully");
+                }
+                catch (Exception rollbackEx)
+                {
+                    _logger.LogError(rollbackEx, "Error during transaction rollback");
+                }
+
+                return new ApiResponse<CheckoutResponseDto>()
+                {
+                    Success = false,
+                    Message = $"Checkout failed: {ex.Message}"
+                };
+            }
+        }
+    }
+}
