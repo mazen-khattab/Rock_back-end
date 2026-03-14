@@ -1,1 +1,1 @@
-{"ContentRoots":["D:\\Mazen\\Rock\\Rock_back-end\\API\\wwwroot\\"],"Root":{"Children":null,"Asset":null,"Patterns":[{"ContentRootIndex":0,"Pattern":"**","Depth":0}]}}
+{"ContentRoots":["F:\\Mazen\\Rock\\Rock_back-end\\API\\wwwroot\\"],"Root":{"Children":{"Images":{"Children":{"Rock_logo.jpg":{"Children":null,"Asset":{"ContentRootIndex":0,"SubPath":"Images/Rock_logo.jpg"},"Patterns":null}},"Asset":null,"Patterns":null}},"Asset":null,"Patterns":[{"ContentRootIndex":0,"Pattern":"**","Depth":0}]}}

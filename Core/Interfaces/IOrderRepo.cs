@@ -7,7 +7,7 @@ namespace Core.Interfaces
 {
     public interface IOrderRepo : IRepo<Order>
     {
-        Task<string> GenerateOrderNumberAsync();
+        Task<string> GenerateOrderNumberAsync(long createdAt);
         Task<bool> OrderNumberExistsAsync(string orderNumber);
     }
 }

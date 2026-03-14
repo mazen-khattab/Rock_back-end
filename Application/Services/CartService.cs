@@ -145,7 +145,7 @@ namespace Application.Services
                 }
 
                 await _unitOfWork.CommitAsync();
-                await _unitOfWork.SaveChanges();
+                await _unitOfWork.SaveChangesAsync();
                 _logger.LogInformation("Successfully added item to cart for user {UserId}", userId);
 
                 return new ApiResponse<string>()
@@ -219,7 +219,7 @@ namespace Application.Services
                 variant.Reserved += 1;
 
                 await _unitOfWork.CommitAsync();
-                await _unitOfWork.SaveChanges();
+                await _unitOfWork.SaveChangesAsync();
                 _logger.LogInformation("Successfully increased quantity for user {UserId}, variant {VariantId}", userId, variantId);
 
                 return new ApiResponse<string>()
@@ -294,7 +294,7 @@ namespace Application.Services
                 //    _logger.LogDebug("Removed cart item for user {UserId}, variant {VariantId} as quantity reached zero", userId, variantId);
                 //}
 
-                await _unitOfWork.SaveChanges();
+                await _unitOfWork.SaveChangesAsync();
                 _logger.LogInformation("Successfully decreased quantity for user {UserId}, variant {VariantId}", userId, variantId);
 
                 return new ApiResponse<string>()
@@ -337,6 +337,8 @@ namespace Application.Services
 
                 if (variant is not null)
                 {
+                    _logger.LogInformation("Trying to update variant reserved, the current reserved Qty: {reserved}", variant.Reserved);
+
                     variant.Reserved -= cart.Quantity;
                     _logger.LogDebug("Updated variant {VariantId} reserved count after removal", variantId);
                 }
@@ -344,7 +346,7 @@ namespace Application.Services
                 await _userCartService.DeleteAsync(cart);
                 _logger.LogDebug("Deleted cart item for user {UserId}, variant {VariantId}", userId, variantId);
 
-                await _unitOfWork.SaveChanges();
+                await _unitOfWork.SaveChangesAsync();
                 _logger.LogInformation("Successfully removed cart item for user {UserId}, variant {VariantId}", userId, variantId);
 
                 return new ApiResponse<string>()
@@ -478,7 +480,7 @@ namespace Application.Services
                 }
 
                 await _unitOfWork.CommitAsync();
-                await _unitOfWork.SaveChanges();
+                await _unitOfWork.SaveChangesAsync();
                 _logger.LogInformation("Successfully added item to guest cart for guest {GuestId}", guestId);
 
                 return new ApiResponse<string>()
@@ -553,7 +555,7 @@ namespace Application.Services
                 variant.Reserved += 1;
 
                 await _unitOfWork.CommitAsync();
-                await _unitOfWork.SaveChanges();
+                await _unitOfWork.SaveChangesAsync();
                 _logger.LogInformation("Successfully increased quantity for guest {GuestId}, variant {VariantId}", guestId, variantId);
 
                 return new ApiResponse<string>()
@@ -629,7 +631,7 @@ namespace Application.Services
                 //    _logger.LogDebug("Removed cart item for guest {GuestId}, variant {VariantId} as quantity reached zero", guestId, variantId);
                 //}
                 
-                await _unitOfWork.SaveChanges();
+                await _unitOfWork.SaveChangesAsync();
                 _logger.LogInformation("Successfully decreased quantity for guest {GuestId}, variant {VariantId}", guestId, variantId);
 
                 return new ApiResponse<string>()
@@ -679,7 +681,7 @@ namespace Application.Services
                 await _guestCartService.DeleteAsync(cart);
                 _logger.LogDebug("Deleted cart item for guest {GuestId}, variant {VariantId}", guestId, variantId);
 
-                await _unitOfWork.SaveChanges();
+                await _unitOfWork.SaveChangesAsync();
                 _logger.LogInformation("Successfully removed cart item for guest {GuestId}, variant {VariantId}", guestId, variantId);
 
                 return new ApiResponse<string>()
@@ -764,7 +766,7 @@ namespace Application.Services
                 }
 
                 if (!ignoreTransaction) await _unitOfWork.CommitAsync();
-                await _unitOfWork.SaveChanges();
+                await _unitOfWork.SaveChangesAsync();
                 _logger.LogInformation("Successfully merged guest cart to user cart for guest {GuestId} with {ItemCount} items", guestId, guestCartItems.Count());
 
                 return new ApiResponse<IEnumerable<UserCart>>()

@@ -4,6 +4,7 @@ using Application.Responses;
 using Core.Entities;
 using Core.Enums;
 using Core.Interfaces;
+using Hangfire;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
@@ -16,33 +17,39 @@ namespace Application.Services
         private readonly IOrderRepo _orderRepo;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICartService _cartServices;
+        private readonly IServices<UserCart> _userCartServices;
         private readonly IServices<Order> _orderService;
         private readonly IServices<OrderDetail> _orderDetailService;
         private readonly IServices<InventoryTransaction> _inventoryTransactionService;
         private readonly UserManager<User> _userManager;
         private readonly IAuthService _authService;
         private readonly ILogger<OrderService> _logger;
+        private readonly IMapper _mapper;
 
         public OrderService(
             IOrderRepo orderRepo,
             IUnitOfWork unitOfWork,
-            ICartService userCartService,
+            ICartService cartServices,
+            IServices<UserCart> userCartServices,
             IServices<Order> orderService,
             IServices<OrderDetail> orderDetailService,
             IServices<InventoryTransaction> inventoryTransactionService,
             UserManager<User> userManager,
             IAuthService authService,
-            ILogger<OrderService> logger)
+            ILogger<OrderService> logger,
+            IMapper mapper)
         {
             _orderRepo = orderRepo;
             _unitOfWork = unitOfWork;
-            _cartServices = userCartService;
+            _cartServices = cartServices;
+            _userCartServices = userCartServices;
             _orderService = orderService;
             _orderDetailService = orderDetailService;
             _inventoryTransactionService = inventoryTransactionService;
             _userManager = userManager;
             _authService = authService;
             _logger = logger;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -55,9 +62,9 @@ namespace Application.Services
         /// - Variant reservation with stock validation
         /// - Inventory transaction recording
         /// </summary>
-        /// <param name="request">Checkout request with cart, user, and order details</param>
-        /// <returns>API response with order ID and creation timestamp</returns>
-        public async Task<ApiResponse<(AuthServiceResponse? authResponse, CheckoutResponseDto response)>> ProcessCheckoutAsync(CheckoutRequestDto request, string? userId)
+        /// <param name="request">Checkout request with cart, userId details</param>
+        /// <returns>API response with order informations</returns>
+        public async Task<ApiResponse<(AuthServiceResponse? authResponse, CheckoutResponseDto checkoutResponse)>> ProcessCheckoutAsync(CheckoutRequestDto request, string? userId)
         {
             _logger.LogInformation("Checkout process started with IdempotencyKey: {IdempotencyKey}", request.IdempotencyKey);
 
@@ -181,10 +188,11 @@ namespace Application.Services
                     };
                 }
 
+                _logger.LogInformation("Order created successfully with Id: {orderId}, for user: {userId}", orderResponse.Data.Id, orderResponse.Data.UserId);
                 Order order = orderResponse.Data;
                 #endregion
 
-                // STEP 6 - CREATE ORDER DETAILS
+                //STEP 6 - CREATE ORDER DETAILS
                 #region CREATE ORDER DETAILS
                 _logger.LogInformation("Step 6: Creating order details for OrderId: {OrderId}", order.Id);
 
@@ -259,8 +267,8 @@ namespace Application.Services
 
                 // STEP 10 - COMMIT TRANSACTION
                 #region COMMIT TRANSACTION & CREATE CHECKOUT RESPONSE
-                _logger.LogInformation("Step 9: Committing transaction");
-                await _unitOfWork.SaveChanges();
+                _logger.LogInformation("Step 10: Committing transaction");
+                await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
 
                 _logger.LogInformation("Checkout completed successfully - OrderId: {OrderId}, OrderNumber: {OrderNumber}",
@@ -272,7 +280,24 @@ namespace Application.Services
                     OrderNumber = order.Number,
                     CreatedAt = order.CreatedAt,
                     TotalPrice = order.TotalPrice
-                }; 
+                };
+                #endregion
+
+                // STEP 11 - SEND ADMIN EMAIL
+                #region SEND ADMIN EMAIL
+                BackgroundJob.Enqueue<IEmailService>(e => e.SendAdminEmailAsync(new EmailInfoDto()
+                {
+                    OrderNumber = order.Number,
+                    FName = request.FirstName,
+                    LName = request.LastName,
+                    Email = request.Email,
+                    Phone = request.Phone,
+                    Address = request.Address,
+                    City = request.City,
+                    Governorate = request.Governorate,
+                    Items = _mapper.MapToDtoList(userCart.Data),
+                    TotalPrice = order.TotalPrice
+                }));
                 #endregion
 
                 return new()
@@ -281,7 +306,6 @@ namespace Application.Services
                     Message = "Order created successfully",
                     Data = (authResponse, checkoutResponse)
                 };
-
             }
             catch (Exception ex)
             {
@@ -413,10 +437,20 @@ namespace Application.Services
             {
                 _logger.LogWarning("Failed to retrieve user cart for userId: {userId}", userId);
                 return new()
-
                 {
                     isSucess = false,
                     Message = $"Failed to retrieve user cart for userId: {userCart.Message}"
+                };
+            }
+
+            if (!userCart.Data.Any())
+            {
+                _logger.LogInformation("Empty cart for userId: {userId}", userId);
+
+                return new()
+                {
+                    isSucess = false,
+                    Message = "User does not have any item in his cart!"
                 };
             }
 
@@ -447,7 +481,9 @@ namespace Application.Services
                     CreatedAt = DateTime.Now
                 };
                 await _orderService.AddAsync(order);
-                _logger.LogInformation("Order created with OrderId: {OrderId}, OrderNumber: {OrderNumber}", order.Id, order.Number);
+                await _unitOfWork.SaveChangesAsync();
+
+                _logger.LogInformation("Order created with OrderId: {OrderId}, OrderNumber: {OrderNumber}, created at: {createdAt}", order.Id, order.Number, order.CreatedAt);
 
                 return new()
                 {
@@ -500,6 +536,7 @@ namespace Application.Services
                     };
                 }
             }
+            await _unitOfWork.SaveChangesAsync();
 
             return new()
             {
@@ -532,6 +569,7 @@ namespace Application.Services
                 // Reserve stock by reducing available quantity and increasing reserved quantity
                 variant.Quantity -= cartItem.Quantity;
                 variant.Reserved -= cartItem.Quantity;
+
                 _logger.LogInformation("Variant stock updated - VariantId: {VariantId}, New Available: {NewAvailable}, New Reserved: {NewReserved}",
                     variant.Id, variant.Quantity, variant.Reserved);
             }
@@ -549,18 +587,20 @@ namespace Application.Services
             foreach (var cartItem in userCart)
             {
                 _logger.LogInformation("Deleting cart item - UserId: {UserId}, VariantId: {VariantId}", userId, cartItem.VariantId);
-                var deletingResult = await _cartServices.RemoveUserItem(userId, cartItem.VariantId);
 
-                if (!deletingResult.isSucess)
+                try
                 {
-                    _logger.LogError("Failed to delete cart item - UserId: {UserId}, VariantId: {VariantId} - Error: {ErrorMessage}", userId, cartItem.VariantId, deletingResult.Message);
-
+                    await _userCartServices.DeleteAsync(cartItem);
+                }
+                catch (Exception ex)
+                {
                     return new()
                     {
                         isSucess = false,
-                        Message = $"Failed to delete cart item for variant {cartItem.VariantId}: {deletingResult.Message}"
+                        Message = $"Failed to delete cart item for variant {cartItem.VariantId}: {ex.Message}"
                     };
                 }
+
                 _logger.LogInformation("Cart item deleted successfully - UserId: {UserId}, VariantId: {VariantId}", userId, cartItem.VariantId);
             }
             return new()
@@ -599,31 +639,28 @@ namespace Application.Services
                     };
                 }
             }
-                return new()
-                {
-                    isSucess = true,
-                    Message = "Inventory transactions created successfully"
-                };
-            }
+
+            await _unitOfWork.SaveChangesAsync();
+            return new()
+            {
+                isSucess = true,
+                Message = "Inventory transactions created successfully"
+            };
+        }
 
         public async Task<string> GenerateOrderNumberAsync()
         {
             _logger.LogInformation("Generating unique order number");
-            string orderNumber = await _orderRepo.GenerateOrderNumberAsync();
 
-            while (await _orderRepo.OrderNumberExistsAsync(orderNumber))
+            string orderNumber = $"ORD-{DateTimeOffset.Now.ToUnixTimeMilliseconds()}";
+
+            while (await _orderService.ExistsAsync(o => o.Number == orderNumber))
             {
                 _logger.LogWarning("Generated order number already exists: {OrderNumber}, generating a new one", orderNumber);
-                orderNumber = await _orderRepo.GenerateOrderNumberAsync();
+                orderNumber = $"ORD-{DateTimeOffset.Now.ToUnixTimeMilliseconds()}";
             }
 
             return orderNumber;
-        }
-
-        public Task<bool> OrderNumberExistsAsync(string orderNumber)
-        {
-            _logger.LogInformation("Checking if order number exists: {OrderNumber}", orderNumber);
-            return _orderRepo.OrderNumberExistsAsync(orderNumber);
         }
     }
 }

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\Mazen\\Rock\\Rock_back-end\\API\\API.csproj": {}
+    "F:\\Mazen\\Rock\\Rock_back-end\\API\\API.csproj": {}
   },
   "projects": {
-    "E:\\Mazen\\Rock\\Rock_back-end\\API\\API.csproj": {
+    "F:\\Mazen\\Rock\\Rock_back-end\\API\\API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Mazen\\Rock\\Rock_back-end\\API\\API.csproj",
+        "projectUniqueName": "F:\\Mazen\\Rock\\Rock_back-end\\API\\API.csproj",
         "projectName": "API",
-        "projectPath": "E:\\Mazen\\Rock\\Rock_back-end\\API\\API.csproj",
+        "projectPath": "F:\\Mazen\\Rock\\Rock_back-end\\API\\API.csproj",
         "packagesPath": "C:\\Users\\mazen\\.nuget\\packages\\",
-        "outputPath": "E:\\Mazen\\Rock\\Rock_back-end\\API\\obj\\",
+        "outputPath": "F:\\Mazen\\Rock\\Rock_back-end\\API\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -32,8 +32,8 @@
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "E:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Infrastructure.csproj": {
-                "projectPath": "E:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Infrastructure.csproj"
+              "F:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Infrastructure.csproj": {
+                "projectPath": "F:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Infrastructure.csproj"
               }
             }
           }
@@ -54,6 +54,18 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "dependencies": {
+            "Hangfire.AspNetCore": {
+              "target": "Package",
+              "version": "[1.8.23, )"
+            },
+            "Hangfire.SqlServer": {
+              "target": "Package",
+              "version": "[1.8.23, )"
+            },
+            "MailKit": {
+              "target": "Package",
+              "version": "[4.15.1, )"
+            },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
               "version": "[10.0.2, )"
@@ -71,6 +83,10 @@
               "suppressParent": "All",
               "target": "Package",
               "version": "[10.0.2, )"
+            },
+            "QuestPDF": {
+              "target": "Package",
+              "version": "[2026.2.3, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
@@ -514,14 +530,14 @@
         }
       }
     },
-    "E:\\Mazen\\Rock\\Rock_back-end\\Application\\Application.csproj": {
+    "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Mazen\\Rock\\Rock_back-end\\Application\\Application.csproj",
+        "projectUniqueName": "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Application.csproj",
         "projectName": "Application",
-        "projectPath": "E:\\Mazen\\Rock\\Rock_back-end\\Application\\Application.csproj",
+        "projectPath": "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Application.csproj",
         "packagesPath": "C:\\Users\\mazen\\.nuget\\packages\\",
-        "outputPath": "E:\\Mazen\\Rock\\Rock_back-end\\Application\\obj\\",
+        "outputPath": "F:\\Mazen\\Rock\\Rock_back-end\\Application\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -542,8 +558,8 @@
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "E:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj": {
-                "projectPath": "E:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj"
+              "F:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj": {
+                "projectPath": "F:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj"
               }
             }
           }
@@ -564,6 +580,14 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "dependencies": {
+            "Hangfire.AspNetCore": {
+              "target": "Package",
+              "version": "[1.8.23, )"
+            },
+            "Hangfire.SqlServer": {
+              "target": "Package",
+              "version": "[1.8.23, )"
+            },
             "Microsoft.AspNetCore.Identity": {
               "target": "Package",
               "version": "[2.3.9, )"
@@ -871,14 +895,14 @@
         }
       }
     },
-    "E:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj": {
+    "F:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj",
+        "projectUniqueName": "F:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj",
         "projectName": "Core",
-        "projectPath": "E:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj",
+        "projectPath": "F:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj",
         "packagesPath": "C:\\Users\\mazen\\.nuget\\packages\\",
-        "outputPath": "E:\\Mazen\\Rock\\Rock_back-end\\Core\\obj\\",
+        "outputPath": "F:\\Mazen\\Rock\\Rock_back-end\\Core\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -1216,14 +1240,14 @@
         }
       }
     },
-    "E:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Infrastructure.csproj": {
+    "F:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Infrastructure.csproj",
+        "projectUniqueName": "F:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Infrastructure.csproj",
         "projectName": "Infrastructure",
-        "projectPath": "E:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Infrastructure.csproj",
+        "projectPath": "F:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Infrastructure.csproj",
         "packagesPath": "C:\\Users\\mazen\\.nuget\\packages\\",
-        "outputPath": "E:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\obj\\",
+        "outputPath": "F:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -1244,11 +1268,11 @@
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "E:\\Mazen\\Rock\\Rock_back-end\\Application\\Application.csproj": {
-                "projectPath": "E:\\Mazen\\Rock\\Rock_back-end\\Application\\Application.csproj"
+              "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Application.csproj": {
+                "projectPath": "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Application.csproj"
               },
-              "E:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj": {
-                "projectPath": "E:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj"
+              "F:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj": {
+                "projectPath": "F:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj"
               }
             }
           }
@@ -1269,6 +1293,18 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "dependencies": {
+            "Hangfire.AspNetCore": {
+              "target": "Package",
+              "version": "[1.8.23, )"
+            },
+            "Hangfire.SqlServer": {
+              "target": "Package",
+              "version": "[1.8.23, )"
+            },
+            "MailKit": {
+              "target": "Package",
+              "version": "[4.15.1, )"
+            },
             "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
               "target": "Package",
               "version": "[10.0.2, )"
@@ -1292,6 +1328,10 @@
               "suppressParent": "All",
               "target": "Package",
               "version": "[10.0.2, )"
+            },
+            "QuestPDF": {
+              "target": "Package",
+              "version": "[2026.2.3, )"
             }
           },
           "imports": [

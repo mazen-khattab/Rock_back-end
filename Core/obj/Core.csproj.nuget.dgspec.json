@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj": {}
+    "F:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj": {}
   },
   "projects": {
-    "E:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj": {
+    "F:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj",
+        "projectUniqueName": "F:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj",
         "projectName": "Core",
-        "projectPath": "E:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj",
+        "projectPath": "F:\\Mazen\\Rock\\Rock_back-end\\Core\\Core.csproj",
         "packagesPath": "C:\\Users\\mazen\\.nuget\\packages\\",
-        "outputPath": "E:\\Mazen\\Rock\\Rock_back-end\\Core\\obj\\",
+        "outputPath": "F:\\Mazen\\Rock\\Rock_back-end\\Core\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

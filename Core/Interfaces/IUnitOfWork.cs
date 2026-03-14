@@ -6,7 +6,7 @@ namespace Core.Interfaces
 {
     public interface IUnitOfWork : IDisposable
     {
-        Task<int> SaveChanges();
+        Task<int> SaveChangesAsync();
         Task BeginTransactionAsync();
         Task CommitAsync();
         Task RollbackAsync();

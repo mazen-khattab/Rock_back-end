@@ -1,12 +1,14 @@
 using API.Middleware;
 using Core.Entities;
 using Core.Settings;
+using Hangfire;
 using Infrastructure.DataSeeding;
 using Infrastructure.Extensions;
 using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using QuestPDF.Infrastructure;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -26,12 +28,16 @@ builder.Services.AddControllers().AddJsonOptions(x =>
     x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
 
+// the license of library that creating the PDF
+QuestPDF.Settings.License = LicenseType.Community;
+
 #region Registration
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddInfrastructureServices(connectionString);
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 #endregion
 
 #region Authentication
@@ -126,6 +132,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<ExceptionMiddleware>();
+
+app.UseHangfireDashboard("/hangfire");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

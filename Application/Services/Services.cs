@@ -175,7 +175,7 @@ namespace Application.Services
         {
             _logger.LogDebug("Saving changes for {Entity}", typeof(T).Name);
 
-            return await _unitOfWork.SaveChanges();
+            return await _unitOfWork.SaveChangesAsync();
         }
     }
 }

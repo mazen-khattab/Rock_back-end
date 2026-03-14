@@ -110,10 +110,12 @@ namespace API.Controllers
                 GenerateCookies(response.Data.authResponse);
             }
 
-            //_logger.LogInformation("Checkout completed successfully: OrderId: {OrderId}, OrderNumber: {OrderNumber}", 
-            //    response.Data?.OrderId, response.Data?.OrderNumber);
+            var order = response.Data.checkoutResponse;
 
-            return Ok(response);
+            _logger.LogInformation("Checkout completed successfully: OrderId: {OrderId}, OrderNumber: {OrderNumber}",
+                order.OrderNumber, order.OrderNumber);
+
+            return Ok(order);
         }
     }
 }

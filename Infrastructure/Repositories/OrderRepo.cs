@@ -13,7 +13,7 @@ namespace Infrastructure.Repositories
         public OrderRepo(AppDbContext appDbContext) : base(appDbContext) { }
 
 
-        public async Task<string> GenerateOrderNumberAsync() => $"ORD-{Guid.NewGuid().ToString()}";
-        public async Task<bool> OrderNumberExistsAsync(string orderNumber) => await _dbSet.AnyAsync(o => o.Number == orderNumber);
+        public async Task<string> GenerateOrderNumberAsync(long createdAt) => $"ORD-{createdAt}";
+        public async Task<bool> OrderNumberExistsAsync(string orderNumber) => await ExistsAsync(o => o.Number == orderNumber);
     }
 }

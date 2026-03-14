@@ -92,7 +92,7 @@ namespace Infrastructure.Repositories
         /// Returns null if no entity is found.
         /// </summary>
         public async Task<T?> GetAsync(
-            Expression<Func<T, bool>> predicate,
+            Expression<Func<T, bool>>? predicate,
             bool tracked = true,
             params Expression<Func<T, object>>[] includes) => await Query(predicate, tracked, includes: includes).FirstOrDefaultAsync();
 

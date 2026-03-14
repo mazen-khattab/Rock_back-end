@@ -2,6 +2,8 @@
 using Application.Mapping;
 using Application.Services;
 using Core.Interfaces;
+using Hangfire;
+using Infrastructure.External.Email;
 using Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +29,17 @@ namespace Infrastructure.Extensions
             services.AddScoped(typeof(IOrderRepo), typeof(OrderRepo));
             services.AddScoped(typeof(IOrderService), typeof(OrderService));
             services.AddScoped(typeof(IMapper), typeof(Mapper));
+            services.AddScoped(typeof(IEmailService), typeof(SmtpEmailService));
+
+            // Hangfire
+            services.AddHangfire(config => config
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(connectionString));
+
+            services.AddHangfireServer();
+
 
             return services;
         }

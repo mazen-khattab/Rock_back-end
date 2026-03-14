@@ -10,7 +10,6 @@ namespace Application.Interfaces
     public interface IOrderService
     {
         Task<string> GenerateOrderNumberAsync();
-        Task<bool> OrderNumberExistsAsync(string orderNumber);
-        Task<ApiResponse<(AuthServiceResponse? authResponse, CheckoutResponseDto response)>> ProcessCheckoutAsync(CheckoutRequestDto request, string? userId);
+        Task<ApiResponse<(AuthServiceResponse? authResponse, CheckoutResponseDto checkoutResponse)>> ProcessCheckoutAsync(CheckoutRequestDto request, string? userId);
     }
 }

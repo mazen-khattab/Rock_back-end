@@ -47,7 +47,7 @@ namespace Infrastructure.Repositories
             _transaction = null;
         }
 
-        public Task<int> SaveChanges() => _context.SaveChangesAsync();
+        public Task<int> SaveChangesAsync() => _context.SaveChangesAsync();
 
         public void Dispose()
         {
