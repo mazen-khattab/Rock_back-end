@@ -2,6 +2,7 @@
 using Application.Interfaces;
 using Application.Responses;
 using Core.Settings;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -16,12 +17,14 @@ namespace API.Controllers
     {
         private readonly IOrderService _orderService;
         private readonly ILogger<OrderController> _logger;
-        readonly JwtSettings _jwtSettings;
+        private readonly IMapper _mapper;
+        private readonly JwtSettings _jwtSettings;
 
-        public OrderController(IOrderService orderService, ILogger<OrderController> logger, IOptions<JwtSettings> jwtSettings)
+        public OrderController(IOrderService orderService, ILogger<OrderController> logger, IMapper mapper, IOptions<JwtSettings> jwtSettings)
         {
             _orderService = orderService;
             _logger = logger;
+            _mapper = mapper;
             _jwtSettings = jwtSettings.Value;
         }
 
@@ -65,28 +68,8 @@ namespace API.Controllers
             }
         }
 
-        /// <summary>
-        /// Processes a complete checkout workflow including order creation, 
-        /// inventory reservation, and transaction management.
-        /// 
-        /// Workflow:
-        /// 1. Validates idempotency to prevent duplicate orders
-        /// 2. Authenticates user (existing or guest login)
-        /// 3. Merges guest cart if applicable
-        /// 4. Validates inventory availability
-        /// 5. Creates order and order details
-        /// 6. Reserves product variants
-        /// 7. Records inventory transactions
-        /// 8. Commits or rolls back transaction atomically
-        /// </summary>
-        /// <param name="request">Checkout request containing user, cart, and shipping information</param>
-        /// <returns>
-        /// 200 OK: Order created successfully with OrderId, OrderNumber, TotalPrice, and CreatedAt timestamp
-        /// 400 Bad Request: Validation errors or insufficient inventory
-        /// 409 Conflict: Empty cart or other checkout conflicts
-        /// 500 Internal Server Error: Database or processing errors
-        /// </returns>
-        [HttpPost("checkout")]
+        [HttpPost]
+        [Route("checkout")]
         public async Task<IActionResult> Checkout([FromBody] CheckoutRequestDto request)
         {
             _logger.LogInformation("Checkout endpoint called with IdempotencyKey: {IdempotencyKey}, Email: {Email}",
@@ -116,6 +99,27 @@ namespace API.Controllers
                 order.OrderNumber, order.OrderNumber);
 
             return Ok(order);
+        }
+        
+
+        [HttpGet]
+        [Authorize]
+        [Route("OrderHistory/{langId}")]
+        public async Task<IActionResult> OrderHistory(int langId)
+        {
+            _logger.LogInformation("OrderHistory endpoint called with langId: {langId}", langId);
+
+            var userId = GetUserId();
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("user does not authorized");
+            }
+
+            var orders = await _orderService.OrderHistory(int.Parse(userId));
+            var ordersDto = _mapper.MapToDtoList(orders.Data, langId);
+
+            return Ok(ordersDto);
         }
     }
 }

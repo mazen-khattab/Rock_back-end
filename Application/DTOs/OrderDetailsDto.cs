@@ -4,15 +4,16 @@ using System.Text;
 
 namespace Application.DTOs
 {
-    public class VariantDto
+    public class OrderDetailsDto
     {
-        public int Id { get; set; }
-        public int ProductId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public decimal OriginalPrice { get; set; }
         public string ColorName { get; set; } = string.Empty;
         public string HexCode { get; set; } = string.Empty;
         public string SizeName { get; set; } = string.Empty;
         public int Quantity { get; set; }
-        public int Reserved { get; set; }
-        public List<VariantImagesDto> ImagesDtos { get; set; } = new List<VariantImagesDto>();
+        public string Image { get; set; } = string.Empty;
     }
 }

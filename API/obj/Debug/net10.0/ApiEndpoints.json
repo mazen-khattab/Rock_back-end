@@ -270,6 +270,22 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "API.Controllers.OrderController",
+    "Method": "OrderHistory",
+    "RelativePath": "api/Order/OrderHistory/{langId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "langId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "API.Controllers.ProductController",
     "Method": "GetProductById",
     "RelativePath": "api/Product/{id}/{langId}",

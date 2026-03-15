@@ -6,49 +6,44 @@ using Core.Enums;
 using Core.Interfaces;
 using Hangfire;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
 namespace Application.Services
 {
-    public class OrderService : IOrderService
+    public class OrderService : Services<Order>, IOrderService
     {
         private readonly IOrderRepo _orderRepo;
-        private readonly IUnitOfWork _unitOfWork;
         private readonly ICartService _cartServices;
         private readonly IServices<UserCart> _userCartServices;
-        private readonly IServices<Order> _orderService;
         private readonly IServices<OrderDetail> _orderDetailService;
         private readonly IServices<InventoryTransaction> _inventoryTransactionService;
         private readonly UserManager<User> _userManager;
         private readonly IAuthService _authService;
-        private readonly ILogger<OrderService> _logger;
         private readonly IMapper _mapper;
 
         public OrderService(
-            IOrderRepo orderRepo,
+            IRepo<Order> repo,
             IUnitOfWork unitOfWork,
+            ILogger<OrderService> logger,
+            IOrderRepo orderRepo,
             ICartService cartServices,
             IServices<UserCart> userCartServices,
-            IServices<Order> orderService,
             IServices<OrderDetail> orderDetailService,
             IServices<InventoryTransaction> inventoryTransactionService,
             UserManager<User> userManager,
             IAuthService authService,
-            ILogger<OrderService> logger,
-            IMapper mapper)
+            IMapper mapper) : base(unitOfWork, repo, logger)
         {
             _orderRepo = orderRepo;
-            _unitOfWork = unitOfWork;
             _cartServices = cartServices;
             _userCartServices = userCartServices;
-            _orderService = orderService;
             _orderDetailService = orderDetailService;
             _inventoryTransactionService = inventoryTransactionService;
             _userManager = userManager;
             _authService = authService;
-            _logger = logger;
             _mapper = mapper;
         }
 
@@ -127,7 +122,7 @@ namespace Application.Services
                 // STEP 3 - IDEMPOTENCY CHECK
                 #region idempotency check
                 //_logger.LogInformation("Step 2: Checking for existing order with IdempotencyKey: {IdempotencyKey}", request.IdempotencyKey);
-                //var existingOrder = await _orderService.GetAsync(
+                //var existingOrder = await GetAsync(
                 //    filter: o => o.Number == request.IdempotencyKey,
                 //    tracked: false);
 
@@ -329,6 +324,47 @@ namespace Application.Services
             }
         }
 
+        /// <summary>
+        /// Retrieves the full order history for a specific user.
+        /// Includes nested details such as product variants, translations, and associated media.
+        /// </summary>
+        /// <param name="userId">The unique identifier of the user whose order history is being requested.</param>
+        /// <returns>
+        /// An asynchronous task that returns an <see cref="ApiResponse{T}"/> containing a list of <see cref="Order"/> objects.
+        /// </returns>
+        public async Task<ApiResponse<List<Order>>> OrderHistory(int userId)
+        {
+            _logger.LogInformation("Retrieve all orders for userId: {userId}", userId);
+
+            var orders = Query(o => o.UserId == userId)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Variant)
+                        .ThenInclude(v => v.Product)
+                            .ThenInclude(p => p.Translations)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Variant)
+                        .ThenInclude(v => v.Color)
+                            .ThenInclude(c => c.Translations)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Variant)
+                        .ThenInclude(v => v.Size)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Variant)
+                        .ThenInclude(v => v.Images)
+                            .ThenInclude(i => i.MediaAsset)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToList();
+
+            _logger.LogInformation("Orders retrieved successfully");
+
+            return new()
+            {
+                isSucess = true,
+                Data = orders
+            };
+        }
+
+        // checkout methods
         private async Task<ApiResponse<AuthServiceResponse>> HandleUserAuthenticationAsync(CheckoutRequestDto request)
         {
             User? user = null;
@@ -480,7 +516,7 @@ namespace Application.Services
                     Status = OrderStatus.Confirmed,
                     CreatedAt = DateTime.Now
                 };
-                await _orderService.AddAsync(order);
+                await AddAsync(order);
                 await _unitOfWork.SaveChangesAsync();
 
                 _logger.LogInformation("Order created with OrderId: {OrderId}, OrderNumber: {OrderNumber}, created at: {createdAt}", order.Id, order.Number, order.CreatedAt);
@@ -654,7 +690,7 @@ namespace Application.Services
 
             string orderNumber = $"ORD-{DateTimeOffset.Now.ToUnixTimeMilliseconds()}";
 
-            while (await _orderService.ExistsAsync(o => o.Number == orderNumber))
+            while (await ExistsAsync(o => o.Number == orderNumber))
             {
                 _logger.LogWarning("Generated order number already exists: {OrderNumber}, generating a new one", orderNumber);
                 orderNumber = $"ORD-{DateTimeOffset.Now.ToUnixTimeMilliseconds()}";
