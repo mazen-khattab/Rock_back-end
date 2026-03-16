@@ -124,14 +124,14 @@ catch (Exception ex)
 #endregion
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<ExceptionMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseHangfireDashboard("/hangfire");
 
