@@ -364,6 +364,7 @@ namespace Application.Services
             };
         }
 
+
         // checkout methods
         private async Task<ApiResponse<AuthServiceResponse>> HandleUserAuthenticationAsync(CheckoutRequestDto request)
         {

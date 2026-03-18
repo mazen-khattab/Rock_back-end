@@ -254,6 +254,22 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "API.Controllers.ContactUsController",
+    "Method": "ContactUs",
+    "RelativePath": "api/ContactUs/ContactUs",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "contactUs",
+        "Type": "Application.DTOs.ContactUsDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "API.Controllers.OrderController",
     "Method": "Checkout",
     "RelativePath": "api/Order/checkout",

@@ -27,26 +27,39 @@ namespace Infrastructure.External.Email
         }
 
 
-        public async Task SendAdminEmailAsync(EmailInfoDto job)
+        public async Task SendAdminEmailAsync(EmailInfoDto job, bool isOrder = true)
         {
             _logger.LogInformation("Sending an email to mazenkhtab11@gmail.com from: {sender}", Email);
 
             MimeMessage email = new();
             email.From.Add(new MailboxAddress("Rock Store", Email));
-            //email.From.Add(new MailboxAddress('', senderEmail));
             email.To.Add(MailboxAddress.Parse("mazenkhtab11@gmail.com"));
 
-            email.Subject = $"New order from {job.FName} {job.LName}";
-
-            var builder = new BodyBuilder
+            if (isOrder)
             {
-                HtmlBody = "<p>Attached is the customer order in PDF format.</p>"
-            };
+                email.Subject = $"New order from {job.FName} {job.LName}";
 
-            byte[] pdfBytes = CreateOrderPdf(job);
+                var builder = new BodyBuilder
+                {
+                    HtmlBody = "<p>Attached is the customer order in PDF format.</p>"
+                };
 
-            builder.Attachments.Add("OrderDetails.pdf", pdfBytes, ContentType.Parse("application/pdf"));
-            email.Body = builder.ToMessageBody();
+                byte[] pdfBytes = CreateOrderPdf(job);
+
+                builder.Attachments.Add("OrderDetails.pdf", pdfBytes, ContentType.Parse("application/pdf"));
+                email.Body = builder.ToMessageBody();
+            }
+            else
+            {   
+                email.Subject = "New contact Submission from Website";
+
+                email.Body = new TextPart("html")
+                {
+                    Text = $@"<h2>User Contact Info</h2>
+                        <p><strong>Name:</strong> {job.FName}</p>
+                        <p><strong>Phone Number:</strong> {job.Phone}</p>"
+                };
+            }
 
             try
             {

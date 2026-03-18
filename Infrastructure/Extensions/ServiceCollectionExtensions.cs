@@ -30,6 +30,7 @@ namespace Infrastructure.Extensions
             services.AddScoped(typeof(IOrderService), typeof(OrderService));
             services.AddScoped(typeof(IMapper), typeof(Mapper));
             services.AddScoped(typeof(IEmailService), typeof(SmtpEmailService));
+            services.AddScoped(typeof(IContactUsService), typeof(ContactUsService));
 
             // Hangfire
             services.AddHangfire(config => config

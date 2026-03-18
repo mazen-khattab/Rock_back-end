@@ -481,6 +481,38 @@
         }
       }
     },
+    "/api/ContactUs/ContactUs": {
+      "post": {
+        "tags": [
+          "ContactUs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactUsDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactUsDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactUsDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Order/checkout": {
       "post": {
         "tags": [
@@ -747,6 +779,17 @@
           }
         }
       },
+      "ContactUsDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          }
+        }
+      },
       "GuestCartOperationDto": {
         "type": "object",
         "properties": {
@@ -845,6 +888,9 @@
     },
     {
       "name": "Cart"
+    },
+    {
+      "name": "ContactUs"
     },
     {
       "name": "Order"

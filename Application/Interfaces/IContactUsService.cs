@@ -1,12 +1,13 @@
 ﻿using Application.DTOs;
+using Application.Responses;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Application.Interfaces
 {
-    public interface IEmailService
+    public interface IContactUsService
     {
-        Task SendAdminEmailAsync(EmailInfoDto job, bool isOrder = true);
+        ApiResponse<string> ContactUs(ContactUsDto contactUs);
     }
 }
