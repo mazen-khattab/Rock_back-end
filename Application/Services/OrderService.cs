@@ -79,13 +79,13 @@ namespace Application.Services
 
                     var result = await HandleUserAuthenticationAsync(request);
 
-                    if (!result.isSucess)
+                    if (!result.IsSucess)
                     {
                         _logger.LogError("Authentication handling failed - Error: {ErrorMessage}", result.Message);
 
                         return new()
                         {
-                            isSucess = false,
+                            IsSucess = false,
                             Message = result.Message
                         };
                     }
@@ -104,7 +104,7 @@ namespace Application.Services
 
                         return new()
                         {
-                            isSucess = false,
+                            IsSucess = false,
                             Message = "User not found"
                         };
                     }
@@ -153,14 +153,14 @@ namespace Application.Services
                 _logger.LogInformation("Step 4: Handling cart for UserId: {UserId} with GuestId: {GuestId}", user.Id, request.GuestId);
                 var userCart = await GerCart(request.GuestId, user.Id);
 
-                if (!userCart.isSucess)
+                if (!userCart.IsSucess)
                 {
                     _logger.LogError("Cart handling failed for UserId: {UserId} - Error: {ErrorMessage}", user.Id, userCart.Message);
                     await _unitOfWork.RollbackAsync();
 
                     return new()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = $"Cart handling failed: {userCart.Message}"
                     };
                 }
@@ -171,14 +171,14 @@ namespace Application.Services
                 _logger.LogInformation("Step 5: Creating order for UserId: {UserId}", user.Id);
                 var orderResponse = await CreateOrder(user.Id, userCart.Data, request);
 
-                if (!orderResponse.isSucess)
+                if (!orderResponse.IsSucess)
                 {
                     _logger.LogError("Order creation failed for UserId: {UserId} - Error: {ErrorMessage}", user.Id, orderResponse.Message);
                     await _unitOfWork.RollbackAsync();
 
                     return new()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = $"Order creation failed: {orderResponse.Message}"
                     };
                 }
@@ -193,13 +193,13 @@ namespace Application.Services
 
                 var orderDetailsReponse = await CreateOrderDetails(order.Id, userCart.Data);
 
-                if (!orderDetailsReponse.isSucess)
+                if (!orderDetailsReponse.IsSucess)
                 {
                     _logger.LogError("Order details creation failed for OrderId: {OrderId} - Error: {ErrorMessage}", order.Id, orderDetailsReponse.Message);
                     await _unitOfWork.RollbackAsync();
                     return new()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = $"Order details creation failed: {orderDetailsReponse.Message}"
                     };
                 }
@@ -211,14 +211,14 @@ namespace Application.Services
 
                 var stockUpdateResponse = await UpdateStockQuantities(user.Id, userCart.Data);
 
-                if (!stockUpdateResponse.isSucess)
+                if (!stockUpdateResponse.IsSucess)
                 {
                     _logger.LogError("Variant reservation failed for UserId: {UserId} - Error: {ErrorMessage}", user.Id, stockUpdateResponse.Message);
                     await _unitOfWork.RollbackAsync();
 
                     return new()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = $"Variant reservation failed: {stockUpdateResponse.Message}"
                     };
                 }
@@ -230,14 +230,14 @@ namespace Application.Services
 
                 var emptyCartResponse = await EmptyCart(user.Id, userCart.Data);
 
-                if (!emptyCartResponse.isSucess)
+                if (!emptyCartResponse.IsSucess)
                 {
                     _logger.LogError("Emptying cart failed for UserId: {UserId} - Error: {ErrorMessage}", user.Id, emptyCartResponse.Message);
                     await _unitOfWork.RollbackAsync();
 
                     return new()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = $"Emptying cart failed: {emptyCartResponse.Message}"
                     };
                 }
@@ -248,13 +248,13 @@ namespace Application.Services
                 _logger.LogInformation("Step 9: Create inventory transactions");
                 var inventoryTransactionResponse = await CreateInventoryTransactions(userCart.Data, order.Id);
 
-                if (!inventoryTransactionResponse.isSucess)
+                if (!inventoryTransactionResponse.IsSucess)
                 {
                     _logger.LogError("Creating inventory transactions failed for OrderId: {OrderId} - Error: {ErrorMessage}", order.Id, inventoryTransactionResponse.Message);
                     await _unitOfWork.RollbackAsync();
                     return new()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = $"Creating inventory transactions failed: {inventoryTransactionResponse.Message}"
                     };
                 }
@@ -297,7 +297,7 @@ namespace Application.Services
 
                 return new()
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Order created successfully",
                     Data = (authResponse, checkoutResponse)
                 };
@@ -318,7 +318,7 @@ namespace Application.Services
 
                 return new()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = $"Checkout failed: {ex.Message}"
                 };
             }
@@ -359,7 +359,7 @@ namespace Application.Services
 
             return new()
             {
-                isSucess = true,
+                IsSucess = true,
                 Data = orders
             };
         }
@@ -392,7 +392,7 @@ namespace Application.Services
 
                     return new()
                     {
-                        isSucess = true,
+                        IsSucess = true,
                         Message = loginResponse.Message,
                         Data = loginResponse
                     };
@@ -418,7 +418,7 @@ namespace Application.Services
 
                 return new()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = registerResponse.Message,
                 };
             }
@@ -432,7 +432,7 @@ namespace Application.Services
 
                 return new()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = "user not found after registration"
                 };
             }
@@ -440,7 +440,7 @@ namespace Application.Services
             _logger.LogInformation("User retrieved successfully after registration");
             return new()
             {
-                isSucess = true,
+                IsSucess = true,
                 Message = "User registered successfully",
                 Data = registerResponse
             };
@@ -454,14 +454,14 @@ namespace Application.Services
                 _logger.LogInformation("Merget guest cart for guestId: {guestId} into user cart for userId: {userId}", guestId, userId);
                 var result = await _cartServices.Merge(userId, guestId, true);
 
-                if (!result.isSucess)
+                if (!result.IsSucess)
                 {
                     _logger.LogError("Failed to merge guest cart into user cart - GuestId: {GuestId}, UserId: {UserId} - Error: {ErrorMessage}",
                         guestId, userId, result.Message);
 
                     return new()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = $"Failed to merge guest cart: {result.Message}"
                     };
                 }
@@ -470,12 +470,12 @@ namespace Application.Services
             // Retrieve user cart items
             var userCart = await _cartServices.GetUserCart(userId, 1);
 
-            if (!userCart.isSucess)
+            if (!userCart.IsSucess)
             {
                 _logger.LogWarning("Failed to retrieve user cart for userId: {userId}", userId);
                 return new()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = $"Failed to retrieve user cart for userId: {userCart.Message}"
                 };
             }
@@ -486,14 +486,14 @@ namespace Application.Services
 
                 return new()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = "User does not have any item in his cart!"
                 };
             }
 
             return new()
             {
-                isSucess = true,
+                IsSucess = true,
                 Message = "User cart retrieved successfully",
                 Data = userCart.Data
             };
@@ -524,7 +524,7 @@ namespace Application.Services
 
                 return new()
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Order created successfully",
                     Data = order
                 };
@@ -535,7 +535,7 @@ namespace Application.Services
 
                 return new()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = $"Error creating order: {ex.Message}"
                 };
             }
@@ -568,7 +568,7 @@ namespace Application.Services
                     _logger.LogError(ex, "Error creating order detail for OrderId: {OrderId}, VariantId: {VariantId}", orderId, item.VariantId);
                     return new()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = $"Error creating order detail for variant {item.VariantId}: {ex.Message}"
                     };
                 }
@@ -577,7 +577,7 @@ namespace Application.Services
 
             return new()
             {
-                isSucess = true,
+                IsSucess = true,
                 Message = "Order details created successfully"
             };
         }
@@ -598,7 +598,7 @@ namespace Application.Services
 
                     return new()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = $"Insufficient stock for variant {variant.Id} - Requested: {cartItem.Quantity}, Available: {variant.Quantity}"
                     };
                 }
@@ -613,7 +613,7 @@ namespace Application.Services
 
             return new()
             {
-                isSucess = true,
+                IsSucess = true,
                 Message = "Stock quantities updated and cart item deleted successfully"
             };
         }
@@ -633,7 +633,7 @@ namespace Application.Services
                 {
                     return new()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = $"Failed to delete cart item for variant {cartItem.VariantId}: {ex.Message}"
                     };
                 }
@@ -642,7 +642,7 @@ namespace Application.Services
             }
             return new()
             {
-                isSucess = true,
+                IsSucess = true,
                 Message = "Cart emptied successfully"
             };
         }
@@ -671,7 +671,7 @@ namespace Application.Services
                     _logger.LogError(ex, "Error creating inventory transaction for OrderId: {OrderId}, VariantId: {VariantId}", orderId, item.VariantId);
                     return new()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = $"Error creating inventory transaction for variant {item.VariantId}: {ex.Message}"
                     };
                 }
@@ -680,7 +680,7 @@ namespace Application.Services
             await _unitOfWork.SaveChangesAsync();
             return new()
             {
-                isSucess = true,
+                IsSucess = true,
                 Message = "Inventory transactions created successfully"
             };
         }

@@ -23,5 +23,6 @@ namespace Application.Interfaces
         CartDto MapToDto(BaseCart cart);
         OrderDto MapToDto(Order order, int languageId);
         OrderDetailsDto MapToDto(OrderDetail orderDetail, int languageId);
+        UserProfileDto MapToDto(User user);
     }
 }

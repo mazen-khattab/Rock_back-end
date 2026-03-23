@@ -29,7 +29,7 @@ namespace API.Controllers
 
             var response = _contactUsService.ContactUs(contactUs);
             
-            if (!response.isSucess)
+            if (!response.IsSucess)
             {
                 _logger.LogWarning("ContactUs service returned failure for {Phone}: {Message}",
                     contactUs.Phone, response.Message);

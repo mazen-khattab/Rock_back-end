@@ -5,8 +5,10 @@ using Hangfire.Server;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Application.Mapping
 {
@@ -476,8 +478,38 @@ namespace Application.Mapping
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "MapToDto<Order>: Error mapping OrderDetails item with Id: {OrderId}",
+                _logger?.LogError(ex, "MapToDto<OrderDetail>: Error mapping OrderDetails item with Id: {OrderDetailId}",
                     orderDetail.Id);
+                throw;
+            }
+        }
+
+        public UserProfileDto MapToDto(User user)
+        {
+            if (user is null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            try
+            {
+                var userProfileDto = new UserProfileDto()
+                {
+                    FirstName = user.Fname ?? string.Empty,
+                    LastName = user.Lname ?? string.Empty,
+                    Email = user.Email ?? string.Empty,
+                    Phone = user.PhoneNumber ?? string.Empty,
+                    Governorate = user.Governorate ?? string.Empty,
+                    City = user.City ?? string.Empty,
+                    FullAddress = user.FullAddress ?? string.Empty
+                };
+
+                return userProfileDto;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "MapToDto<User>: Error mapping User item with Id: {UserId}",
+                    user.Id);
                 throw;
             }
         }

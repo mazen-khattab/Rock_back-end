@@ -3,24 +3,20 @@
   "WorkspaceRootPath": "F:\\Mazen\\Rock\\Rock_back-end\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{F80C4E72-27A0-12B5-0634-DD5C11CFB0C1}|Application\\Application.csproj|f:\\mazen\\rock\\rock_back-end\\application\\services\\contactusservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F80C4E72-27A0-12B5-0634-DD5C11CFB0C1}|Application\\Application.csproj|solutionrelative:application\\services\\contactusservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|f:\\mazen\\rock\\rock_back-end\\api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|solutionrelative:api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{5872AEB3-BAA3-FE31-B0EB-0FB6DBEDCF83}|Infrastructure\\Infrastructure.csproj|f:\\mazen\\rock\\rock_back-end\\infrastructure\\external\\email\\smtpemailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5872AEB3-BAA3-FE31-B0EB-0FB6DBEDCF83}|Infrastructure\\Infrastructure.csproj|solutionrelative:infrastructure\\external\\email\\smtpemailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|f:\\mazen\\rock\\rock_back-end\\api\\controllers\\usercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|solutionrelative:api\\controllers\\usercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|f:\\mazen\\rock\\rock_back-end\\api\\controllers\\contactuscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|solutionrelative:api\\controllers\\contactuscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|f:\\mazen\\rock\\rock_back-end\\api\\controllers\\ordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|solutionrelative:api\\controllers\\ordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{F80C4E72-27A0-12B5-0634-DD5C11CFB0C1}|Application\\Application.csproj|f:\\mazen\\rock\\rock_back-end\\application\\interfaces\\icontactusservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F80C4E72-27A0-12B5-0634-DD5C11CFB0C1}|Application\\Application.csproj|solutionrelative:application\\interfaces\\icontactusservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F80C4E72-27A0-12B5-0634-DD5C11CFB0C1}|Application\\Application.csproj|f:\\mazen\\rock\\rock_back-end\\application\\interfaces\\iemailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F80C4E72-27A0-12B5-0634-DD5C11CFB0C1}|Application\\Application.csproj|solutionrelative:application\\interfaces\\iemailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{F80C4E72-27A0-12B5-0634-DD5C11CFB0C1}|Application\\Application.csproj|f:\\mazen\\rock\\rock_back-end\\application\\services\\userservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F80C4E72-27A0-12B5-0634-DD5C11CFB0C1}|Application\\Application.csproj|solutionrelative:application\\services\\userservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -30,72 +26,58 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "ContactUsController.cs",
-              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Controllers\\ContactUsController.cs",
-              "RelativeDocumentMoniker": "API\\Controllers\\ContactUsController.cs",
-              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Controllers\\ContactUsController.cs",
-              "RelativeToolTip": "API\\Controllers\\ContactUsController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAABAAAAAAAAAA==",
+              "Title": "OrderController.cs",
+              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Controllers\\OrderController.cs",
+              "RelativeDocumentMoniker": "API\\Controllers\\OrderController.cs",
+              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Controllers\\OrderController.cs",
+              "RelativeToolTip": "API\\Controllers\\OrderController.cs",
+              "ViewState": "AgIAABkAAAAAAAAAAAAkwDoAAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-17T23:14:00.35Z",
+              "WhenOpened": "2026-03-23T20:30:31.501Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "ContactUsService.cs",
-              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Services\\ContactUsService.cs",
-              "RelativeDocumentMoniker": "Application\\Services\\ContactUsService.cs",
-              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Services\\ContactUsService.cs",
-              "RelativeToolTip": "Application\\Services\\ContactUsService.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAAAB8AAAAAAAAAAAAAAA==",
+              "Title": "AuthController.cs",
+              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Controllers\\AuthController.cs",
+              "RelativeDocumentMoniker": "API\\Controllers\\AuthController.cs",
+              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Controllers\\AuthController.cs",
+              "RelativeToolTip": "API\\Controllers\\AuthController.cs",
+              "ViewState": "AgIAAB8AAAAAAAAAAAAgwCkAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-17T23:02:03.524Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "IContactUsService.cs",
-              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Interfaces\\IContactUsService.cs",
-              "RelativeDocumentMoniker": "Application\\Interfaces\\IContactUsService.cs",
-              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Interfaces\\IContactUsService.cs",
-              "RelativeToolTip": "Application\\Interfaces\\IContactUsService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAoAAAA+AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-17T22:54:47.615Z",
+              "WhenOpened": "2026-03-23T17:29:00.299Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "SmtpEmailService.cs",
-              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\External\\Email\\SmtpEmailService.cs",
-              "RelativeDocumentMoniker": "Infrastructure\\External\\Email\\SmtpEmailService.cs",
-              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\External\\Email\\SmtpEmailService.cs",
-              "RelativeToolTip": "Infrastructure\\External\\Email\\SmtpEmailService.cs",
-              "ViewState": "AgIAAA8AAAAAAAAAAAAAADQAAAAQAAAAAAAAAA==",
+              "Title": "UserController.cs",
+              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Controllers\\UserController.cs",
+              "RelativeDocumentMoniker": "API\\Controllers\\UserController.cs",
+              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Controllers\\UserController.cs",
+              "RelativeToolTip": "API\\Controllers\\UserController.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAABkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-17T22:43:53.095Z",
+              "WhenOpened": "2026-03-19T20:57:11.845Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "IEmailService.cs",
-              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Interfaces\\IEmailService.cs",
-              "RelativeDocumentMoniker": "Application\\Interfaces\\IEmailService.cs",
-              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Interfaces\\IEmailService.cs",
-              "RelativeToolTip": "Application\\Interfaces\\IEmailService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAkAAAANAAAAAAAAAA==",
+              "DocumentIndex": 3,
+              "Title": "UserServices.cs",
+              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Services\\UserServices.cs",
+              "RelativeDocumentMoniker": "Application\\Services\\UserServices.cs",
+              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Services\\UserServices.cs",
+              "RelativeToolTip": "Application\\Services\\UserServices.cs",
+              "ViewState": "AgIAAD0AAAAAAAAAAAAwwFgAAAAZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-17T22:43:07.688Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-19T14:34:00.626Z"
             }
           ]
         }

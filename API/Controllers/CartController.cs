@@ -44,7 +44,7 @@ namespace API.Controllers
 
                 var result = await _cartService.GetUserCart(userId, langId);
 
-                if (!result.isSucess)
+                if (!result.IsSucess)
                 {
                     _logger.LogWarning("Failed to get the cart of user {UserId}: {Message}", userId, result.Message);
                     return BadRequest(result.Message);
@@ -56,7 +56,7 @@ namespace API.Controllers
                 _logger.LogInformation("Successfully gettign the cart for user {UserId}", userId);
                 return Ok(new ApiResponse<IEnumerable<CartDto>>()
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Successfully merging the cart",
                     Data = cartDto
                 });
@@ -89,7 +89,7 @@ namespace API.Controllers
 
                 var result = await _cartService.AddToUserCart(userId, variantId, quantity);
 
-                if (!result.isSucess)
+                if (!result.IsSucess)
                 {
                     _logger.LogWarning("Failed to add item to cart for user {UserId}: {Message}", userId, result.Message);
                     return BadRequest(result.Message);
@@ -124,7 +124,7 @@ namespace API.Controllers
 
                 var result = await _cartService.IncreaseUserAmount(userId, variantId);
 
-                if (!result.isSucess)
+                if (!result.IsSucess)
                 {
                     _logger.LogWarning("Failed to increase the amount for user {UserId}: {Message}", userId, result.Message);
                     return BadRequest(result.Message);
@@ -159,7 +159,7 @@ namespace API.Controllers
 
                 var result = await _cartService.DecreaseUserAmount(userId, variantId);
 
-                if (!result.isSucess)
+                if (!result.IsSucess)
                 {
                     _logger.LogWarning("Failed to decrease the amount for user {UserId}: {Message}", userId, result.Message);
                     return BadRequest(result.Message);
@@ -192,7 +192,7 @@ namespace API.Controllers
 
                 var result = await _cartService.RemoveUserItem(userId, variantId);
 
-                if (!result.isSucess)
+                if (!result.IsSucess)
                 {
                     _logger.LogWarning("Failed to remove itme for user {UserId}: {Message}", userId, result.Message);
                     return BadRequest(result.Message);
@@ -221,7 +221,7 @@ namespace API.Controllers
 
                 var result = await _cartService.GetGuestCart(guestId, langId);
 
-                if (!result.isSucess)
+                if (!result.IsSucess)
                 {
                     _logger.LogWarning("Failed to get the cart of gueset {GuestId}: {Message}", guestId, result.Message);
                     return BadRequest(result.Message);
@@ -233,7 +233,7 @@ namespace API.Controllers
                 _logger.LogInformation("Successfully gettign the cart for gueset {GuestId}", guestId);
                 return Ok(new ApiResponse<IEnumerable<CartDto>>()
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Successfully merging the cart",
                     Data = cartDto
                 });
@@ -265,7 +265,7 @@ namespace API.Controllers
 
                 var result = await _cartService.AddToGuestCart(guestId, variantId, quantity);
 
-                if (!result.isSucess)
+                if (!result.IsSucess)
                 {
                     _logger.LogWarning("Failed to add item to cart for guest {GuestId}: {Message}", guestId, result.Message);
                     return BadRequest(result.Message);
@@ -299,7 +299,7 @@ namespace API.Controllers
 
                 var result = await _cartService.IncreaseGuestAmount(guestId, variantId);
 
-                if (!result.isSucess)
+                if (!result.IsSucess)
                 {
                     _logger.LogWarning("Failed to increase the amount for guest {GuestId}: {Message}", guestId, result.Message);
                     return BadRequest(result.Message);
@@ -333,7 +333,7 @@ namespace API.Controllers
 
                 var result = await _cartService.DecreaseGuestAmount(guestId, variantId);
 
-                if (!result.isSucess)
+                if (!result.IsSucess)
                 {
                     _logger.LogWarning("Failed to decrease the amount for guestId {GuestId}: {Message}", guestId, result.Message);
                     return BadRequest(result.Message);
@@ -364,7 +364,7 @@ namespace API.Controllers
 
                 var result = await _cartService.RemoveGuestItem(guestId, variantId);
 
-                if (!result.isSucess)
+                if (!result.IsSucess)
                 {
                     _logger.LogWarning("Failed to remove the item for guestId {GuestId}: {Message}", guestId, result.Message);
                     return BadRequest(result.Message);
@@ -400,7 +400,7 @@ namespace API.Controllers
 
                 var result = await _cartService.Merge(userId, guestId);
 
-                if (!result.isSucess)
+                if (!result.IsSucess)
                 {
                     _logger.LogWarning("Failed to Merge {GuestId} and {UserId}: {Message}", guestId, userId, result.Message);
                     return BadRequest(result.Message);

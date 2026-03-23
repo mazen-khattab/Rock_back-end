@@ -58,7 +58,7 @@ namespace Application.Services
 
             return new ApiResponse<(IEnumerable<Product> Items, int TotalCount)>()
             {
-                isSucess = true,
+                IsSucess = true,
                 Data = (items,  totalCount)
             };
         }
@@ -96,7 +96,7 @@ namespace Application.Services
             {
                 return new ApiResponse<Product>()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = "product not found",
                     Data = null
                 };
@@ -104,7 +104,7 @@ namespace Application.Services
 
             return new ApiResponse<Product>()
             {
-                isSucess = true,
+                IsSucess = true,
                 Data = product,
             };
         }

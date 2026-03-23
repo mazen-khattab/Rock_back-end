@@ -46,7 +46,7 @@ namespace API.Controllers
         {
             var product = await _productService.GetProductById(id, langId);
 
-            if (!product.isSucess)
+            if (!product.IsSucess)
             {
                 return NotFound(product.Message);
             }

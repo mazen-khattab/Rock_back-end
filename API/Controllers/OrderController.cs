@@ -1,6 +1,7 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
 using Application.Responses;
+using Core.ExceptionsTypes;
 using Core.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -46,6 +47,7 @@ namespace API.Controllers
                     HttpOnly = true,
                     Secure = true,
                     SameSite = SameSiteMode.None,
+                    IsEssential = true,
                     Expires = DateTime.Now.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes)
                 };
 
@@ -54,6 +56,7 @@ namespace API.Controllers
                     HttpOnly = true,
                     Secure = true,
                     SameSite = SameSiteMode.None,
+                    IsEssential = true,
                     Expires = DateTime.Now.AddDays(_jwtSettings.RefreshTokenExpirationDays)
                 };
 
@@ -82,7 +85,7 @@ namespace API.Controllers
             // Process checkout
             var response = await _orderService.ProcessCheckoutAsync(request, userId);
 
-            if (!response.isSucess)
+            if (!response.IsSucess)
             {
                 _logger.LogWarning("Checkout failed: {Message}", response.Message);
                 return BadRequest(response);

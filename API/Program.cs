@@ -95,7 +95,10 @@ builder.Services.AddCors(option =>
     option.AddPolicy("FrontEndPolicy",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173")
+            policy.WithOrigins(
+                    "http://localhost:5173",
+                    "https://rockstore-weld.vercel.app"
+                )
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();

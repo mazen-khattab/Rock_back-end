@@ -44,6 +44,7 @@ namespace API.Controllers
                     HttpOnly = true,
                     Secure = true,
                     SameSite = SameSiteMode.None,
+                    IsEssential = true,
                     Expires = DateTime.Now.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes)
                 };
 
@@ -52,6 +53,7 @@ namespace API.Controllers
                     HttpOnly = true,
                     Secure = true,
                     SameSite = SameSiteMode.None,
+                    IsEssential = true,
                     Expires = DateTime.Now.AddDays(_jwtSettings.RefreshTokenExpirationDays)
                 };
 
@@ -85,7 +87,7 @@ namespace API.Controllers
 
                 return Ok(new ApiResponse<UserInfoDto>
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Login successful",
                     Data = new UserInfoDto
                     {
@@ -120,7 +122,7 @@ namespace API.Controllers
 
                 return Ok(new ApiResponse<UserInfoDto>
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Login successful",
                     Data = new UserInfoDto
                     {
@@ -168,7 +170,7 @@ namespace API.Controllers
 
             return Ok(new ApiResponse<UserInfoDto>
             {
-                isSucess = true,
+                IsSucess = true,
                 Message = "Tokens refreshed",
                 Data = new UserInfoDto
                 {
@@ -226,7 +228,7 @@ namespace API.Controllers
 
                     return Ok(new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = result.Message
                     });
                 }
@@ -235,7 +237,7 @@ namespace API.Controllers
 
                 return Ok(new ApiResponse<string>()
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = result.Message
                 });
             }

@@ -56,7 +56,7 @@ namespace Application.Services
                     _logger.LogInformation("Cart is empty for user {UserId}", userId);
                     return new ApiResponse<IEnumerable<UserCart>>()
                     {
-                        isSucess = true,
+                        IsSucess = true,
                         Message = "Cart is empty",
                         Data = Enumerable.Empty<UserCart>()
                     };
@@ -66,7 +66,7 @@ namespace Application.Services
 
                 return new ApiResponse<IEnumerable<UserCart>>()
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Cart retrieved successfully",
                     Data = cartItems
                 };
@@ -76,7 +76,7 @@ namespace Application.Services
                 _logger.LogError(ex, "Error retrieving cart for user {UserId}", userId);
                 return new ApiResponse<IEnumerable<UserCart>>()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = "An error occurred while retrieving cart"
                 };
             }
@@ -100,7 +100,7 @@ namespace Application.Services
 
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "variant not found!"
                     };
                 }
@@ -115,7 +115,7 @@ namespace Application.Services
 
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "No enough items!"
                     };
                 }
@@ -150,7 +150,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>()
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Item added to cart successfully",
                 };
             }
@@ -161,7 +161,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = "Something went wrong while adding item to cart",
                 };
             }
@@ -184,7 +184,7 @@ namespace Application.Services
 
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "Cart item not found!"
                     };
                 }
@@ -198,7 +198,7 @@ namespace Application.Services
 
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "Variant not found!"
                     };
                 }
@@ -210,7 +210,7 @@ namespace Application.Services
 
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "No enough items!"
                     };
                 }
@@ -224,7 +224,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>()
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Quantity increased successfully"
                 };
             }
@@ -235,7 +235,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = "Something went wrong while increasing quantity"
                 };
             }
@@ -254,7 +254,7 @@ namespace Application.Services
                     _logger.LogWarning("Cart item not found for user {UserId}, variant {VariantId}", userId, variantId);
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "Cart item not found!"
                     };
                 }
@@ -264,7 +264,7 @@ namespace Application.Services
                     _logger.LogWarning("Can not descrease quantity for user {userId}", userId);
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "can not decrease the amount!"
                     };
                 }
@@ -276,7 +276,7 @@ namespace Application.Services
                     _logger.LogWarning("Variant {VariantId} not found", variantId);
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "Variant not found!"
                     };
                 }
@@ -299,7 +299,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>()
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Quantity decreased successfully"
                 };
             }
@@ -309,7 +309,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = "Something went wrong while decreasing quantity"
                 };
             }
@@ -328,7 +328,7 @@ namespace Application.Services
                     _logger.LogWarning("Cart item not found for user {UserId}, variant {VariantId}", userId, variantId);
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "Cart item not found!"
                     };
                 }
@@ -351,7 +351,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>()
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Item removed from cart successfully"
                 };
             }
@@ -361,7 +361,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = "Something went wrong while removing item"
                 };
             }
@@ -395,7 +395,7 @@ namespace Application.Services
                     _logger.LogInformation("Cart is empty or expired for guest {GuestId}", guestId);
                     return new ApiResponse<IEnumerable<GuestCart>>()
                     {
-                        isSucess = true,
+                        IsSucess = true,
                         Message = "Cart is empty or expired",
                         Data = Enumerable.Empty<GuestCart>()
                     };
@@ -405,7 +405,7 @@ namespace Application.Services
 
                 return new ApiResponse<IEnumerable<GuestCart>>()
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Cart retrieved successfully",
                     Data = cartItems
                 };
@@ -415,7 +415,7 @@ namespace Application.Services
                 _logger.LogError(ex, "Error retrieving cart for guest {GuestId}", guestId);
                 return new ApiResponse<IEnumerable<GuestCart>>()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = "An error occurred while retrieving cart"
                 };
             }
@@ -438,7 +438,7 @@ namespace Application.Services
 
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "Variant not found!"
                     };
                 }
@@ -450,7 +450,7 @@ namespace Application.Services
 
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "No enough items!"
                     };
                 }
@@ -485,7 +485,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>()
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Item added to cart successfully"
                 };
             }
@@ -496,7 +496,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = "Something went wrong while adding item to cart"
                 };
             }
@@ -519,7 +519,7 @@ namespace Application.Services
 
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "Cart item not found!"
                     };
                 }
@@ -533,7 +533,7 @@ namespace Application.Services
 
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "Variant not found!"
                     };
                 }
@@ -545,7 +545,7 @@ namespace Application.Services
 
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "No enough items!"
                     };
                 }
@@ -560,7 +560,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>()
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Quantity increased successfully"
                 };
             }
@@ -571,7 +571,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = "Something went wrong while increasing quantity"
                 };
             }
@@ -590,7 +590,7 @@ namespace Application.Services
                     _logger.LogWarning("Cart item not found for guest {GuestId}, variant {VariantId}", guestId, variantId);
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "Cart item not found!"
                     };
                 }
@@ -600,7 +600,7 @@ namespace Application.Services
                     _logger.LogWarning("Can not descrease quantity for guest {GuestId}", guestId);
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "can not decrease the amount!"
                     };
                 }
@@ -612,7 +612,7 @@ namespace Application.Services
                     _logger.LogWarning("Variant {VariantId} not found", variantId);
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "Variant not found!"
                     };
                 }
@@ -636,7 +636,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>()
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Quantity decreased successfully"
                 };
             }
@@ -646,7 +646,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = "Something went wrong while decreasing quantity"
                 };
             }
@@ -665,7 +665,7 @@ namespace Application.Services
                     _logger.LogWarning("Cart item not found for guest {GuestId}, variant {VariantId}", guestId, variantId);
                     return new ApiResponse<string>()
                     {
-                        isSucess = false,
+                        IsSucess = false,
                         Message = "Cart item not found!"
                     };
                 }
@@ -686,7 +686,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>()
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Item removed from cart successfully"
                 };
             }
@@ -696,7 +696,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = "Something went wrong while removing item"
                 };
             }
@@ -724,7 +724,7 @@ namespace Application.Services
 
                     return new ApiResponse<IEnumerable<UserCart>>()
                     {
-                        isSucess = true,
+                        IsSucess = true,
                         Message = "Guest cart is empty",
                         Data = Enumerable.Empty<UserCart>()
                     };
@@ -771,7 +771,7 @@ namespace Application.Services
 
                 return new ApiResponse<IEnumerable<UserCart>>()
                 {
-                    isSucess = true,
+                    IsSucess = true,
                     Message = "Cart merged successfully",
                 };
             }
@@ -782,7 +782,7 @@ namespace Application.Services
 
                 return new ApiResponse<IEnumerable<UserCart>>()
                 {
-                    isSucess = false,
+                    IsSucess = false,
                     Message = "Something went wrong while merging cart"
                 };
             }
