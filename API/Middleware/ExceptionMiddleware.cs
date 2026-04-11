@@ -28,6 +28,7 @@ namespace API.Middleware
             {
                 _logger.LogError(ex, "Unhandled exception occurred. Path: {Path}, Method: {Method}", context.Request.Path, context.Request.Method);
 
+                await WriteErrorToFile(ex);
                 await HandleExceptionAsync(context, ex);
             }
         }
@@ -67,6 +68,21 @@ namespace API.Middleware
             var errorJson = JsonSerializer.Serialize(errorResponse);
 
             return context.Response.WriteAsync(errorJson);
+        }
+
+        private async Task WriteErrorToFile(Exception ex)
+        {
+            try
+            {
+                string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "my-logs");
+                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+                string filePath = Path.Combine(folderPath, "logs.txt");
+                string logMessage = $"[{DateTime.Now}] ERROR: {ex.Message}{Environment.NewLine}{ex.StackTrace}{Environment.NewLine}{new string('-', 50)}{Environment.NewLine}";
+
+                await File.AppendAllTextAsync(filePath, logMessage);
+            }
+            catch { /* لو فشل في الكتابة في الملف متخليش البرنامج يقع */ }
         }
     }
 }

@@ -7,6 +7,7 @@ using Infrastructure.Extensions;
 using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using QuestPDF.Infrastructure;
 using System.Text;
@@ -125,6 +126,24 @@ catch (Exception ex)
     logger.LogError(ex, "An Error Occurs When Applying The Migrations");
 }
 #endregion
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        if (context.Database.GetPendingMigrations().Any())
+        {
+            context.Database.Migrate();
+            Console.WriteLine("Migrations applied successfully!");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error applying migrations: {ex.Message}");
+    }
+}
 
 // Configure the HTTP request pipeline.
 app.UseMiddleware<ExceptionMiddleware>();
