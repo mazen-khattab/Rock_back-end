@@ -64,11 +64,11 @@
             },
             "Microsoft.AspNetCore.Identity": {
               "target": "Package",
-              "version": "[2.3.9, )"
+              "version": "[2.3.10, )"
             },
             "Microsoft.IdentityModel.Tokens": {
               "target": "Package",
-              "version": "[8.16.0, )"
+              "version": "[8.18.0, )"
             },
             "Newtonsoft.Json": {
               "target": "Package",
@@ -76,7 +76,11 @@
             },
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",
-              "version": "[8.16.0, )"
+              "version": "[8.18.0, )"
+            },
+            "System.Security.Cryptography.Xml": {
+              "target": "Package",
+              "version": "[10.0.8, )"
             }
           },
           "imports": [
@@ -421,7 +425,7 @@
           "dependencies": {
             "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[10.0.2, )"
+              "version": "[10.0.8, )"
             }
           },
           "imports": [

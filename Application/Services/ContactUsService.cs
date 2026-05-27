@@ -32,7 +32,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>
                 {
-                    IsSucess = true,
+                    IsSuccess = true,
                     Message = "Message sent successfully"
                 };
             }
@@ -42,7 +42,7 @@ namespace Application.Services
 
                 return new ApiResponse<string>
                 {
-                    IsSucess = false,
+                    IsSuccess = false,
                     Message = "Failed to process your request. Please try again later.",
                 };
             }

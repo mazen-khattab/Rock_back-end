@@ -1,0 +1,276 @@
+﻿using Application.DTOs;
+using Application.Interfaces;
+using Application.Mapping;
+using Core.Entities;
+using Core.Interfaces;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
+
+namespace API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ProductController : ControllerBase
+    {
+        private readonly IProductService _productService;
+        private readonly IMapper _mapper;
+        private readonly IWebHostEnvironment _env;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly AppDbContext _context;
+
+        public ProductController(IProductService productService, IMapper mapper, IWebHostEnvironment env, IUnitOfWork unitOfWork, AppDbContext context)
+        {
+            _productService = productService;
+            _mapper = mapper;
+            _env = env;
+            _unitOfWork = unitOfWork;
+            _context = context;
+        }
+
+        [HttpGet]
+        [Route("Products/{langId}")]
+        public async Task<IActionResult> GetAllProducts(int langId, [FromQuery] ProductFilterDto filterDto)
+        {
+            var products = await _productService.GetFilteredProductsAsync(langId, filterDto);
+            var productDto = _mapper.MapToDtoList(products.Data.Items, langId);
+
+            return Ok(new
+            {
+                items = productDto,
+                totalCount = products.Data.TotalCount,
+                pageNumber = filterDto.PageNumber,
+                pageSize = filterDto.PageSize,
+                totalPages = (int)Math.Ceiling(products.Data.TotalCount / (double)filterDto.PageSize)
+            });
+        }
+
+        [HttpGet]
+        [Route("{id}/{langId}")]
+        public async Task<IActionResult> GetProductById(int id, int langId)
+        {
+            var product = await _productService.GetProductById(id, langId);
+
+            if (!product.IsSucess)
+            {
+                return NotFound(product.Message);
+            }
+
+            var productDto = _mapper.MapToDto(langId, product.Data);
+
+            return Ok(productDto);
+        }
+
+        [HttpGet]
+        [Route("admin/Products/{langId}")]
+        public async Task<IActionResult> GetAdminProducts(int langId, [FromQuery] ProductFilterDto filterDto)
+        {
+            var products = await _productService.GetFilteredProductsAsync(langId, filterDto);
+            var productDtos = _mapper.MapToDtoAdminList(products.Data.Items, langId);
+
+            return Ok(new
+            {
+                items = productDtos,
+                totalCount = products.Data.TotalCount,
+                pageNumber = filterDto.PageNumber,
+                pageSize = filterDto.PageSize,
+                totalPages = (int)Math.Ceiling(products.Data.TotalCount / (double)filterDto.PageSize)
+            });
+        }
+
+        [HttpPost]
+        [Route("admin/Products")]
+        public async Task<IActionResult> CreateProduct([FromForm] ProductDetailsAdminDto dto)
+        {
+            // Basic validations
+            if (dto == null)
+                return BadRequest("Request body is required.");
+
+            if (string.IsNullOrWhiteSpace(dto.NameAr) || string.IsNullOrWhiteSpace(dto.NameEn) || string.IsNullOrWhiteSpace(dto.category))
+                return BadRequest("NameAr, NameEn and category are required.");
+
+            if (dto.Variants == null || !dto.Variants.Any())
+                return BadRequest("At least one variant is required.");
+
+            // Validate variant images presence
+            foreach (var variant in dto.Variants)
+            {
+                if (variant.Images == null || !variant.Images.Any())
+                    return BadRequest("Each variant must contain at least one image file.");
+            }
+
+            // File guards
+            var allowedExt = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            const long maxFileSize = 5 * 1024 * 1024; // 5MB
+
+            var savedPhysicalFiles = new List<string>();
+
+            // Resolve upload folder
+            var webRoot = _env.WebRootPath;
+            if (string.IsNullOrEmpty(webRoot))
+            {
+                webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            }
+
+            var uploadFolder = Path.Combine(webRoot, "Uploads", "Products");
+            Directory.CreateDirectory(uploadFolder);
+
+            // Lookup category
+            var category = await _context.Categories.Include(c => c.Translations)
+                .FirstOrDefaultAsync(c => c.Translations.Any(t => t.Name == dto.category));
+
+            if (category == null)
+                return BadRequest("Category not found.");
+
+            // Lookup languages (ar / en)
+            var langAr = await _context.Languages.FirstOrDefaultAsync(l => l.Code.ToLower() == "ar");
+            var langEn = await _context.Languages.FirstOrDefaultAsync(l => l.Code.ToLower() == "en");
+
+            // fallback ids
+            var arId = langAr?.Id ?? 1;
+            var enId = langEn?.Id ?? 2;
+
+            // Start building product entity
+            var product = new Product()
+            {
+                CategoryId = category.Id,
+                Price = dto.Price,
+                OriginalPrice = dto.Price,
+                IsDeleted = dto.IsDeleted,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // Add translations
+            product.Translations.Add(new ProductTranslation
+            {
+                LanguageId = arId,
+                Name = dto.NameAr,
+                Description = dto.DescriptionAr,
+                Slug = dto.SlugAr,
+                MetaTitle = dto.MetaTitleAr,
+                MetaDescription = dto.MetaDescriptionAr
+            });
+
+            product.Translations.Add(new ProductTranslation
+            {
+                LanguageId = enId,
+                Name = dto.NameEn,
+                Description = dto.DescriptionEn,
+                Slug = dto.SlugEn,
+                MetaTitle = dto.MetaTitleEn,
+                MetaDescription = dto.MetaDescriptionEn
+            });
+
+            // Process variants and images
+            try
+            {
+                foreach (var vDto in dto.Variants)
+                {
+                    // find size
+                    var size = await _context.Sizes.FirstOrDefaultAsync(s => s.Name == vDto.Size);
+                    if (size == null)
+                        return BadRequest($"Size '{vDto.Size}' not found.");
+
+                    // find color by translation
+                    var color = await _context.Colors.Include(c => c.Translations)
+                        .FirstOrDefaultAsync(c => c.Translations.Any(t => t.Name == vDto.Color));
+
+                    if (color == null)
+                        return BadRequest($"Color '{vDto.Color}' not found.");
+
+                    var variant = new Variant()
+                    {
+                        SizeId = size.Id,
+                        ColorId = color.Id,
+                        Quantity = vDto.Quantity,
+                        Reserved = 0
+                    };
+
+                    // images
+                    foreach (var imgDto in vDto.Images)
+                    {
+                        var file = imgDto.ImageUrl;
+                        if (file == null || file.Length == 0)
+                        {
+                            // cleanup already saved files before returning
+                            foreach (var p in savedPhysicalFiles)
+                                System.IO.File.Delete(p);
+                            return BadRequest("Image file is empty.");
+                        }
+
+                        if (file.Length > maxFileSize)
+                        {
+                            foreach (var p in savedPhysicalFiles)
+                                System.IO.File.Delete(p);
+                            return BadRequest("One or more files exceed the maximum allowed size of 5MB.");
+                        }
+
+                        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+                        if (!allowedExt.Contains(ext))
+                        {
+                            foreach (var p in savedPhysicalFiles)
+                                System.IO.File.Delete(p);
+                            return BadRequest("One or more files have an invalid file extension.");
+                        }
+
+                        var uniqueFileName = $"{Guid.NewGuid()}{ext}";
+                        var physicalPath = Path.Combine(uploadFolder, uniqueFileName);
+
+                        using (var stream = new FileStream(physicalPath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+
+                        savedPhysicalFiles.Add(physicalPath);
+
+                        var media = new MediaAsset
+                        {
+                            FileName = uniqueFileName,
+                            FilePath = Path.Combine("/Uploads/Products", uniqueFileName).Replace("\\", "/"),
+                            MediaType = file.ContentType,
+                            CreatedAt = DateTime.UtcNow
+                        };
+
+                        var variantImage = new VariantImage
+                        {
+                            SortOrder = imgDto.sortOrder,
+                            MediaAsset = media
+                        };
+
+                        variant.Images.Add(variantImage);
+                    }
+
+                    product.Variants.Add(variant);
+                }
+
+                // Begin transaction
+                await _unitOfWork.BeginTransactionAsync();
+
+                // Add product and save
+                await _productService.AddAsync(product);
+                await _productService.SaveChangesAsync();
+
+                await _unitOfWork.CommitAsync();
+
+                return CreatedAtAction(nameof(GetProductById), new { id = product.Id, langId = arId }, new { productId = product.Id });
+            }
+            catch (Exception ex)
+            {
+                // rollback transaction if active
+                try { await _unitOfWork.RollbackAsync(); } catch { }
+
+                // delete saved files
+                foreach (var p in savedPhysicalFiles)
+                {
+                    try { System.IO.File.Delete(p); } catch { }
+                }
+
+                // log if needed (controller has no logger)
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while creating the product.");
+            }
+        }
+    }
+}

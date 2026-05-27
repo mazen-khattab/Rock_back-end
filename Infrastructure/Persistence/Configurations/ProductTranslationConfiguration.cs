@@ -17,7 +17,7 @@ namespace Infrastructure.Persistence.Configurations
                 .HasMaxLength(200);
 
             builder.Property(t => t.Description)
-                .HasMaxLength(1000);
+                .HasColumnType("nvarchar(max)");
 
             builder.HasIndex(t => new { t.ProductId, t.LanguageId }).IsUnique();
 

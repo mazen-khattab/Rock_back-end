@@ -3,28 +3,20 @@
   "WorkspaceRootPath": "F:\\Mazen\\Rock\\Rock_back-end\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|f:\\mazen\\rock\\rock_back-end\\api\\middleware\\exceptionmiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|solutionrelative:api\\middleware\\exceptionmiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|F:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Migrations\\20260527105243_UpdateDescriptionToMax.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Infrastructure\\Migrations\\20260527105243_UpdateDescriptionToMax.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|f:\\mazen\\rock\\rock_back-end\\api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|solutionrelative:api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{5872AEB3-BAA3-FE31-B0EB-0FB6DBEDCF83}|Infrastructure\\Infrastructure.csproj|f:\\mazen\\rock\\rock_back-end\\infrastructure\\persistence\\configurations\\producttranslationconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5872AEB3-BAA3-FE31-B0EB-0FB6DBEDCF83}|Infrastructure\\Infrastructure.csproj|solutionrelative:infrastructure\\persistence\\configurations\\producttranslationconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|f:\\mazen\\rock\\rock_back-end\\api\\controllers\\ordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|solutionrelative:api\\controllers\\ordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{F80C4E72-27A0-12B5-0634-DD5C11CFB0C1}|Application\\Application.csproj|f:\\mazen\\rock\\rock_back-end\\application\\services\\productservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F80C4E72-27A0-12B5-0634-DD5C11CFB0C1}|Application\\Application.csproj|solutionrelative:application\\services\\productservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|f:\\mazen\\rock\\rock_back-end\\api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|solutionrelative:api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|f:\\mazen\\rock\\rock_back-end\\api\\controllers\\usercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|solutionrelative:api\\controllers\\usercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F80C4E72-27A0-12B5-0634-DD5C11CFB0C1}|Application\\Application.csproj|f:\\mazen\\rock\\rock_back-end\\application\\services\\userservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F80C4E72-27A0-12B5-0634-DD5C11CFB0C1}|Application\\Application.csproj|solutionrelative:application\\services\\userservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|f:\\mazen\\rock\\rock_back-end\\api\\controllers\\productscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}|API\\API.csproj|solutionrelative:api\\controllers\\productscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -39,75 +31,54 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "ExceptionMiddleware.cs",
-              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Middleware\\ExceptionMiddleware.cs",
-              "RelativeDocumentMoniker": "API\\Middleware\\ExceptionMiddleware.cs",
-              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Middleware\\ExceptionMiddleware.cs",
-              "RelativeToolTip": "API\\Middleware\\ExceptionMiddleware.cs",
-              "ViewState": "AgIAAEEAAAAAAAAAAAAwwFUAAAAJAAAAAAAAAA==",
+              "Title": "20260527105243_UpdateDescriptionToMax.cs",
+              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Migrations\\20260527105243_UpdateDescriptionToMax.cs",
+              "RelativeDocumentMoniker": "Infrastructure\\Migrations\\20260527105243_UpdateDescriptionToMax.cs",
+              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Migrations\\20260527105243_UpdateDescriptionToMax.cs",
+              "RelativeToolTip": "Infrastructure\\Migrations\\20260527105243_UpdateDescriptionToMax.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAABQAAAAjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-25T22:50:23.6Z",
+              "WhenOpened": "2026-05-27T10:52:43.912Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "Program.cs",
-              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Program.cs",
-              "RelativeDocumentMoniker": "API\\Program.cs",
-              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Program.cs",
-              "RelativeToolTip": "API\\Program.cs",
-              "ViewState": "AgIAABYAAAAAAAAAAAAAAIUAAAAFAAAAAAAAAA==",
+              "Title": "ProductTranslationConfiguration.cs",
+              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Persistence\\Configurations\\ProductTranslationConfiguration.cs",
+              "RelativeDocumentMoniker": "Infrastructure\\Persistence\\Configurations\\ProductTranslationConfiguration.cs",
+              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\Infrastructure\\Persistence\\Configurations\\ProductTranslationConfiguration.cs",
+              "RelativeToolTip": "Infrastructure\\Persistence\\Configurations\\ProductTranslationConfiguration.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAAuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-23T21:31:04.498Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "OrderController.cs",
-              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Controllers\\OrderController.cs",
-              "RelativeDocumentMoniker": "API\\Controllers\\OrderController.cs",
-              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Controllers\\OrderController.cs",
-              "RelativeToolTip": "API\\Controllers\\OrderController.cs",
-              "ViewState": "AgIAAEQAAAAAAAAAAAAwwFIAAAAtAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-23T20:30:31.501Z"
+              "WhenOpened": "2026-05-27T10:45:05.52Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "AuthController.cs",
-              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Controllers\\AuthController.cs",
-              "RelativeDocumentMoniker": "API\\Controllers\\AuthController.cs",
-              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Controllers\\AuthController.cs",
-              "RelativeToolTip": "API\\Controllers\\AuthController.cs",
-              "ViewState": "AgIAAB8AAAAAAAAAAAAgwCYAAAAAAAAAAAAAAA==",
+              "Title": "ProductsController.cs",
+              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Controllers\\ProductsController.cs",
+              "RelativeDocumentMoniker": "API\\Controllers\\ProductsController.cs",
+              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Controllers\\ProductsController.cs",
+              "RelativeToolTip": "API\\Controllers\\ProductsController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEUAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-23T17:29:00.299Z"
+              "WhenOpened": "2026-05-26T16:50:17.091Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "UserController.cs",
-              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Controllers\\UserController.cs",
-              "RelativeDocumentMoniker": "API\\Controllers\\UserController.cs",
-              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\API\\Controllers\\UserController.cs",
-              "RelativeToolTip": "API\\Controllers\\UserController.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAAABkAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 2,
+              "Title": "ProductService.cs",
+              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Services\\ProductService.cs",
+              "RelativeDocumentMoniker": "Application\\Services\\ProductService.cs",
+              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Services\\ProductService.cs",
+              "RelativeToolTip": "Application\\Services\\ProductService.cs",
+              "ViewState": "AgIAADYAAAAAAAAAAAAowI8AAAAvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-19T20:57:11.845Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "UserServices.cs",
-              "DocumentMoniker": "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Services\\UserServices.cs",
-              "RelativeDocumentMoniker": "Application\\Services\\UserServices.cs",
-              "ToolTip": "F:\\Mazen\\Rock\\Rock_back-end\\Application\\Services\\UserServices.cs",
-              "RelativeToolTip": "Application\\Services\\UserServices.cs",
-              "ViewState": "AgIAAD0AAAAAAAAAAAAwwFgAAAAZAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-19T14:34:00.626Z"
+              "WhenOpened": "2026-05-26T16:21:49.647Z",
+              "EditorCaption": ""
             }
           ]
         }

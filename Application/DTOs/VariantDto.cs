@@ -13,6 +13,5 @@ namespace Application.DTOs
         public string SizeName { get; set; } = string.Empty;
         public int Quantity { get; set; }
         public int Reserved { get; set; }
-        public List<VariantImagesDto> ImagesDtos { get; set; } = new List<VariantImagesDto>();
     }
 }

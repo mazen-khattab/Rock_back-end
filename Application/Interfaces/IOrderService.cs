@@ -12,6 +12,6 @@ namespace Application.Interfaces
     {
         Task<string> GenerateOrderNumberAsync();
         Task<ApiResponse<(AuthServiceResponse? authResponse, CheckoutResponseDto checkoutResponse)>> ProcessCheckoutAsync(CheckoutRequestDto request, string? userId);
-        Task<ApiResponse<List<Order>>> OrderHistory(int userId);
+        Task<ApiResponse<IEnumerable<Order>>> OrderHistory(int userId);
     }
 }

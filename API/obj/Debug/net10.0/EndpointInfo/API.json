@@ -133,10 +133,10 @@
         }
       }
     },
-    "/api/Cart/GetUserCart/{langId}": {
+    "/api/Carts/GetUserCart/{langId}": {
       "get": {
         "tags": [
-          "Cart"
+          "Carts"
         ],
         "parameters": [
           {
@@ -160,10 +160,10 @@
         }
       }
     },
-    "/api/Cart/AddToCartUser": {
+    "/api/Carts/AddToCartUser": {
       "post": {
         "tags": [
-          "Cart"
+          "Carts"
         ],
         "requestBody": {
           "content": {
@@ -192,10 +192,10 @@
         }
       }
     },
-    "/api/Cart/IncreaseUserAmount": {
+    "/api/Carts/IncreaseUserAmount": {
       "put": {
         "tags": [
-          "Cart"
+          "Carts"
         ],
         "requestBody": {
           "content": {
@@ -224,10 +224,10 @@
         }
       }
     },
-    "/api/Cart/DecreaseUserAmount": {
+    "/api/Carts/DecreaseUserAmount": {
       "put": {
         "tags": [
-          "Cart"
+          "Carts"
         ],
         "requestBody": {
           "content": {
@@ -256,10 +256,10 @@
         }
       }
     },
-    "/api/Cart/RemoveUserItem/{variantId}": {
+    "/api/Carts/RemoveUserItem/{variantId}": {
       "delete": {
         "tags": [
-          "Cart"
+          "Carts"
         ],
         "parameters": [
           {
@@ -283,10 +283,10 @@
         }
       }
     },
-    "/api/Cart/GetGuestCart/{langId}/{guestId}": {
+    "/api/Carts/GetGuestCart/{langId}/{guestId}": {
       "get": {
         "tags": [
-          "Cart"
+          "Carts"
         ],
         "parameters": [
           {
@@ -318,10 +318,10 @@
         }
       }
     },
-    "/api/Cart/AddToGuestCart": {
+    "/api/Carts/AddToGuestCart": {
       "post": {
         "tags": [
-          "Cart"
+          "Carts"
         ],
         "requestBody": {
           "content": {
@@ -350,10 +350,10 @@
         }
       }
     },
-    "/api/Cart/IncreaseGuestAmount": {
+    "/api/Carts/IncreaseGuestAmount": {
       "put": {
         "tags": [
-          "Cart"
+          "Carts"
         ],
         "requestBody": {
           "content": {
@@ -382,10 +382,10 @@
         }
       }
     },
-    "/api/Cart/DecreaseGuestAmount": {
+    "/api/Carts/DecreaseGuestAmount": {
       "put": {
         "tags": [
-          "Cart"
+          "Carts"
         ],
         "requestBody": {
           "content": {
@@ -414,10 +414,10 @@
         }
       }
     },
-    "/api/Cart/RemoveGuestItem/{guestId}/{variantId}": {
+    "/api/Carts/RemoveGuestItem/{guestId}/{variantId}": {
       "delete": {
         "tags": [
-          "Cart"
+          "Carts"
         ],
         "parameters": [
           {
@@ -449,10 +449,10 @@
         }
       }
     },
-    "/api/Cart/Merge": {
+    "/api/Carts/Merge": {
       "post": {
         "tags": [
-          "Cart"
+          "Carts"
         ],
         "requestBody": {
           "content": {
@@ -474,6 +474,190 @@
           },
           "required": true
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Categories": {
+      "get": {
+        "tags": [
+          "Categories"
+        ],
+        "parameters": [
+          {
+            "name": "langId",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Categories/{id}": {
+      "get": {
+        "tags": [
+          "Categories"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "langId",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Categories/lookup/{langId}": {
+      "get": {
+        "tags": [
+          "Categories"
+        ],
+        "parameters": [
+          {
+            "name": "langId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Colors": {
+      "get": {
+        "tags": [
+          "Colors"
+        ],
+        "parameters": [
+          {
+            "name": "langId",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Colors/{id}": {
+      "get": {
+        "tags": [
+          "Colors"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "langId",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Colors/lookup/{langId}": {
+      "get": {
+        "tags": [
+          "Colors"
+        ],
+        "parameters": [
+          {
+            "name": "langId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -513,10 +697,10 @@
         }
       }
     },
-    "/api/Order/checkout": {
+    "/api/Orders/checkout": {
       "post": {
         "tags": [
-          "Order"
+          "Orders"
         ],
         "requestBody": {
           "content": {
@@ -545,10 +729,10 @@
         }
       }
     },
-    "/api/Order/OrderHistory/{langId}": {
+    "/api/Orders/OrderHistory/{langId}": {
       "get": {
         "tags": [
-          "Order"
+          "Orders"
         ],
         "parameters": [
           {
@@ -572,10 +756,10 @@
         }
       }
     },
-    "/api/Product/Products/{langId}": {
+    "/api/Products/{langId}": {
       "get": {
         "tags": [
-          "Product"
+          "Products"
         ],
         "parameters": [
           {
@@ -644,10 +828,10 @@
         }
       }
     },
-    "/api/Product/{id}/{langId}": {
+    "/api/Products/{id}/{langId}": {
       "get": {
         "tags": [
-          "Product"
+          "Products"
         ],
         "parameters": [
           {
@@ -684,10 +868,70 @@
         }
       }
     },
-    "/api/User/profile": {
+    "/api/Products/admin/{langId}": {
       "get": {
         "tags": [
-          "User"
+          "Products"
+        ],
+        "parameters": [
+          {
+            "name": "langId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Category",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Size",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Color",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -696,10 +940,152 @@
         }
       }
     },
-    "/api/User/profile/update": {
+    "/api/Products/admin/Products": {
+      "post": {
+        "tags": [
+          "Products"
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "CategoryId": {
+                    "pattern": "^-?(?:0|[1-9]\\d*)$",
+                    "type": [
+                      "integer",
+                      "string"
+                    ],
+                    "format": "int32"
+                  },
+                  "NameAr": {
+                    "type": "string"
+                  },
+                  "NameEn": {
+                    "type": "string"
+                  },
+                  "Price": {
+                    "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+                    "type": [
+                      "number",
+                      "string"
+                    ],
+                    "format": "double"
+                  },
+                  "DescriptionAr": {
+                    "type": "string"
+                  },
+                  "DescriptionEn": {
+                    "type": "string"
+                  },
+                  "IsDeleted": {
+                    "type": "boolean"
+                  },
+                  "SlugAr": {
+                    "type": "string"
+                  },
+                  "SlugEn": {
+                    "type": "string"
+                  },
+                  "MetaDescriptionAr": {
+                    "type": "string"
+                  },
+                  "MetaDescriptionEn": {
+                    "type": "string"
+                  },
+                  "MetaTitleAr": {
+                    "type": "string"
+                  },
+                  "MetaTitleEn": {
+                    "type": "string"
+                  },
+                  "Variants": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ProductDetailsVariantsAdminDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Sizes": {
+      "get": {
+        "tags": [
+          "Sizes"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Sizes/{id}": {
+      "get": {
+        "tags": [
+          "Sizes"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Sizes/lookup": {
+      "get": {
+        "tags": [
+          "Sizes"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Users/profile": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Users/profile/update": {
       "put": {
         "tags": [
-          "User"
+          "Users"
         ],
         "requestBody": {
           "content": {
@@ -728,10 +1114,10 @@
         }
       }
     },
-    "/api/User/password/change": {
+    "/api/Users/password/change": {
       "post": {
         "tags": [
-          "User"
+          "Users"
         ],
         "requestBody": {
           "content": {
@@ -896,6 +1282,10 @@
           }
         }
       },
+      "IFormFile": {
+        "type": "string",
+        "format": "binary"
+      },
       "LoginDto": {
         "type": "object",
         "properties": {
@@ -912,6 +1302,57 @@
         "properties": {
           "guestId": {
             "type": "string"
+          }
+        }
+      },
+      "ProductDetailsVariantImagesAdminDto": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "$ref": "#/components/schemas/IFormFile"
+          },
+          "sortOrder": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ProductDetailsVariantsAdminDto": {
+        "type": "object",
+        "properties": {
+          "sizeId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "colorId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "quantity": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductDetailsVariantImagesAdminDto"
+            }
           }
         }
       },
@@ -1003,19 +1444,28 @@
       "name": "Auth"
     },
     {
-      "name": "Cart"
+      "name": "Carts"
+    },
+    {
+      "name": "Categories"
+    },
+    {
+      "name": "Colors"
     },
     {
       "name": "ContactUs"
     },
     {
-      "name": "Order"
+      "name": "Orders"
     },
     {
-      "name": "Product"
+      "name": "Products"
     },
     {
-      "name": "User"
+      "name": "Sizes"
+    },
+    {
+      "name": "Users"
     }
   ]
 }

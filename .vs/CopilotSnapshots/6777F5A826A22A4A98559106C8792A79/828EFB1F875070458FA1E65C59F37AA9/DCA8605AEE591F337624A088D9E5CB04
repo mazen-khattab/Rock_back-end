@@ -1,0 +1,13 @@
+﻿using Application.DTOs;
+using Application.Responses;
+using System.Threading.Tasks;
+
+namespace Application.Interfaces
+{
+    public interface ISizeService
+    {
+        Task<ApiResponse<SizeDto>> GetAll();
+        Task<ApiResponse<SizeDetailsDto>> GetById(int sizeId);
+        Task<ApiResponse<lookupDto>> Lookup();
+    }
+}

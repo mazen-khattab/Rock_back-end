@@ -68,9 +68,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.CartController",
+    "ContainingType": "API.Controllers.CartsController",
     "Method": "AddToCartUser",
-    "RelativePath": "api/Cart/AddToCartUser",
+    "RelativePath": "api/Carts/AddToCartUser",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -84,9 +84,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.CartController",
+    "ContainingType": "API.Controllers.CartsController",
     "Method": "AddToGuestCart",
-    "RelativePath": "api/Cart/AddToGuestCart",
+    "RelativePath": "api/Carts/AddToGuestCart",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -100,9 +100,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.CartController",
+    "ContainingType": "API.Controllers.CartsController",
     "Method": "DecreaseGuestAmount",
-    "RelativePath": "api/Cart/DecreaseGuestAmount",
+    "RelativePath": "api/Carts/DecreaseGuestAmount",
     "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,
@@ -116,9 +116,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.CartController",
+    "ContainingType": "API.Controllers.CartsController",
     "Method": "DecreaseUserAmount",
-    "RelativePath": "api/Cart/DecreaseUserAmount",
+    "RelativePath": "api/Carts/DecreaseUserAmount",
     "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,
@@ -132,9 +132,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.CartController",
+    "ContainingType": "API.Controllers.CartsController",
     "Method": "GetGuestCart",
-    "RelativePath": "api/Cart/GetGuestCart/{langId}/{guestId}",
+    "RelativePath": "api/Carts/GetGuestCart/{langId}/{guestId}",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -153,9 +153,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.CartController",
+    "ContainingType": "API.Controllers.CartsController",
     "Method": "GetUserCart",
-    "RelativePath": "api/Cart/GetUserCart/{langId}",
+    "RelativePath": "api/Carts/GetUserCart/{langId}",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -169,9 +169,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.CartController",
+    "ContainingType": "API.Controllers.CartsController",
     "Method": "IncreaseGuestAmount",
-    "RelativePath": "api/Cart/IncreaseGuestAmount",
+    "RelativePath": "api/Carts/IncreaseGuestAmount",
     "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,
@@ -185,9 +185,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.CartController",
+    "ContainingType": "API.Controllers.CartsController",
     "Method": "IncreaseUserAmount",
-    "RelativePath": "api/Cart/IncreaseUserAmount",
+    "RelativePath": "api/Carts/IncreaseUserAmount",
     "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,
@@ -201,9 +201,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.CartController",
+    "ContainingType": "API.Controllers.CartsController",
     "Method": "Merge",
-    "RelativePath": "api/Cart/Merge",
+    "RelativePath": "api/Carts/Merge",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -217,9 +217,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.CartController",
+    "ContainingType": "API.Controllers.CartsController",
     "Method": "RemoveGuestItem",
-    "RelativePath": "api/Cart/RemoveGuestItem/{guestId}/{variantId}",
+    "RelativePath": "api/Carts/RemoveGuestItem/{guestId}/{variantId}",
     "HttpMethod": "DELETE",
     "IsController": true,
     "Order": 0,
@@ -238,15 +238,121 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.CartController",
+    "ContainingType": "API.Controllers.CartsController",
     "Method": "RemoveUserItem",
-    "RelativePath": "api/Cart/RemoveUserItem/{variantId}",
+    "RelativePath": "api/Carts/RemoveUserItem/{variantId}",
     "HttpMethod": "DELETE",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
         "Name": "variantId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.CategoriesController",
+    "Method": "GetAll",
+    "RelativePath": "api/Categories",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "langId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.CategoriesController",
+    "Method": "GetById",
+    "RelativePath": "api/Categories/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "langId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.CategoriesController",
+    "Method": "GetLookup",
+    "RelativePath": "api/Categories/lookup/{langId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "langId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.ColorsController",
+    "Method": "GetAll",
+    "RelativePath": "api/Colors",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "langId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.ColorsController",
+    "Method": "GetById",
+    "RelativePath": "api/Colors/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "langId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.ColorsController",
+    "Method": "GetLookup",
+    "RelativePath": "api/Colors/lookup/{langId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "langId",
         "Type": "System.Int32",
         "IsRequired": true
       }
@@ -270,9 +376,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.OrderController",
+    "ContainingType": "API.Controllers.OrdersController",
     "Method": "Checkout",
-    "RelativePath": "api/Order/checkout",
+    "RelativePath": "api/Orders/checkout",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -286,9 +392,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.OrderController",
+    "ContainingType": "API.Controllers.OrdersController",
     "Method": "OrderHistory",
-    "RelativePath": "api/Order/OrderHistory/{langId}",
+    "RelativePath": "api/Orders/OrderHistory/{langId}",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -302,9 +408,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.ProductController",
+    "ContainingType": "API.Controllers.ProductsController",
     "Method": "GetProductById",
-    "RelativePath": "api/Product/{id}/{langId}",
+    "RelativePath": "api/Products/{id}/{langId}",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -323,9 +429,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.ProductController",
+    "ContainingType": "API.Controllers.ProductsController",
     "Method": "GetAllProducts",
-    "RelativePath": "api/Product/Products/{langId}",
+    "RelativePath": "api/Products/{langId}",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -364,9 +470,167 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.UserController",
+    "ContainingType": "API.Controllers.ProductsController",
+    "Method": "GetAdminProducts",
+    "RelativePath": "api/Products/admin/{langId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "langId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "PageNumber",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "PageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "Category",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Size",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Color",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.ProductsController",
+    "Method": "CreateProduct",
+    "RelativePath": "api/Products/admin/Products",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "CategoryId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "NameAr",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "NameEn",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Price",
+        "Type": "System.Decimal",
+        "IsRequired": false
+      },
+      {
+        "Name": "DescriptionAr",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "DescriptionEn",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "IsDeleted",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      },
+      {
+        "Name": "SlugAr",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "SlugEn",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "MetaDescriptionAr",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "MetaDescriptionEn",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "MetaTitleAr",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "MetaTitleEn",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Variants",
+        "Type": "System.Collections.Generic.List\u00601[[Application.DTOs.ProductDetailsVariantsAdminDto, Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.SizesController",
+    "Method": "GetAll",
+    "RelativePath": "api/Sizes",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.SizesController",
+    "Method": "GetById",
+    "RelativePath": "api/Sizes/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.SizesController",
+    "Method": "GetLookup",
+    "RelativePath": "api/Sizes/lookup",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.UsersController",
     "Method": "ChangePassword",
-    "RelativePath": "api/User/password/change",
+    "RelativePath": "api/Users/password/change",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -380,9 +644,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.UserController",
+    "ContainingType": "API.Controllers.UsersController",
     "Method": "GetProfile",
-    "RelativePath": "api/User/profile",
+    "RelativePath": "api/Users/profile",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -390,9 +654,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "API.Controllers.UserController",
+    "ContainingType": "API.Controllers.UsersController",
     "Method": "UpdateProfile",
-    "RelativePath": "api/User/profile/update",
+    "RelativePath": "api/Users/profile/update",
     "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,

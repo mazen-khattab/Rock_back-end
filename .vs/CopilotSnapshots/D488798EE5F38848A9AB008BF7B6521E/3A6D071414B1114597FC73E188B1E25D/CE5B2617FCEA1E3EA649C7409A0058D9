@@ -1,0 +1,93 @@
+﻿using Application.Interfaces;
+using Application.Responses;
+using Core.Entities;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ColorsController : ControllerBase
+    {
+        private readonly IColorService _colorService;
+        private readonly ILogger<ColorsController> _logger;
+
+        public ColorsController(IColorService colorService, ILogger<ColorsController> logger)
+        {
+            _colorService = colorService;
+            _logger = logger;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int langId)
+        {
+            _logger.LogInformation("HTTP GET request received for api/colors with langId: {LangId}", langId);
+
+            var result = await _colorService.GetAll(langId);
+
+            if (!result.IsSuccess)
+            {
+                _logger.LogWarning("Failed to retrieve colors in controller for langId: {LangId}. Message: {Msg}", langId, result.Message);
+                return BadRequest(new { error = result.Message });
+            }
+
+            _logger.LogInformation("Successfully returning colors for langId: {LangId}", langId);
+
+            return Ok(new ApiResponse<IEnumerable<Color>>
+            {
+                IsSuccess = true,
+                Data = result.Data,
+                Message = result.Message
+            });
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id, [FromQuery] int langId)
+        {
+            _logger.LogInformation("HTTP GET request received for api/colors/{Id} with langId: {LangId}", id, langId);
+
+            var result = await _colorService.GetById(id, langId);
+
+            if (!result.IsSuccess)
+            {
+                _logger.LogWarning("Color with ID: {Id} not found or failed to retrieve. Message: {Msg}", id, result.Message);
+                return BadRequest(new { error = result.Message });
+            }
+
+            _logger.LogInformation("Successfully returning color ID: {Id}", id);
+
+            return Ok(new ApiResponse<Color>
+            {
+                IsSuccess = true,
+                Data = result.Data,
+                Message = result.Message
+            });
+        }
+
+        [HttpGet("lookup/{langId}")]
+        public async Task<IActionResult> GetLookup(int langId)
+        {
+            _logger.LogInformation("HTTP GET request received for api/colors/lookup with langId: {LangId}", langId);
+
+            var result = await _colorService.Lookup(langId);
+
+            if (!result.IsSuccess)
+            {
+                _logger.LogWarning("Failed to retrieve color lookups. Message: {Msg}", result.Message);
+                return BadRequest(new { error = result.Message });
+            }
+
+            _logger.LogInformation("Successfully returning color lookups for dropdown.");
+
+            return Ok(new ApiResponse<IEnumerable<Color>>
+            {
+                IsSuccess = true,
+                Data = result.Data,
+                Message = result.Message
+            });
+        }
+    }
+}

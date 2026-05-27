@@ -1,0 +1,113 @@
+﻿using Application.Interfaces;
+using Application.Responses;
+using Core.Entities;
+using Core.Interfaces;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Application.Services
+{
+    public class SizeService : Services<Size>, ISizeService
+    {
+        public SizeService(IUnitOfWork unitOfWork, IRepo<Size> repo, ILogger<SizeService> logger) : base(unitOfWork, repo, logger) { }
+
+        public async Task<ApiResponse<IEnumerable<Size>>> GetAll()
+        {
+            _logger.LogInformation("GetAll sizes requested");
+
+            try
+            {
+                var sizes = await GetAllAsync();
+
+                _logger.LogInformation("Successfully retrieved {Count} sizes", sizes.Count());
+                return new()
+                {
+                    IsSuccess = true,
+                    Data = sizes,
+                    Message = "Sizes retrieved successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while fetching all sizes");
+
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "An error occurred while retrieving sizes."
+                };
+            }
+        }
+
+        public async Task<ApiResponse<Size>> GetById(int sizeId)
+        {
+            _logger.LogInformation("GetSizeById requested for SizeID: {SizeId}", sizeId);
+
+            try
+            {
+                var size = await GetByIdAsync(sizeId);
+
+                if (size == null)
+                {
+                    _logger.LogWarning("Size with ID: {SizeId} was not found.", sizeId);
+
+                    return new()
+                    {
+                        IsSuccess = false,
+                        Message = "Size not found."
+                    };
+                }
+
+                _logger.LogInformation("Successfully retrieved size ID: {SizeId}", sizeId);
+
+                return new()
+                {
+                    IsSuccess = true,
+                    Data = size,
+                    Message = "Size retrieved successfully.",
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting size {SizeId}", sizeId);
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "An error occurred while retrieving the size."
+                };
+            }
+        }
+
+        public async Task<ApiResponse<IEnumerable<Size>>> Lookup()
+        {
+            _logger.LogInformation("Size lookup requested");
+
+            try
+            {
+                var lookup = await GetAllAsync();
+
+                _logger.LogInformation("Successfully retrieved size lookups");
+
+                return new()
+                {
+                    IsSuccess = true,
+                    Message = "Size lookups retrieved successfully.",
+                    Data = lookup,
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while fetching size lookups");
+
+                return new()
+                {
+                    IsSuccess = false,
+                    Message = "An error occurred while retrieving size lookups."
+                };
+            }
+        }
+    }
+}

@@ -36,7 +36,7 @@ namespace Application.Services
 
                 return new()
                 {
-                    IsSucess = false,
+                    IsSuccess = false,
                     Message = "User not found"
                 };
             }
@@ -44,7 +44,7 @@ namespace Application.Services
             _logger.LogInformation("Profile retrieved successfully for userId: {userId}", userId);
             return new()
             {
-                IsSucess = true,
+                IsSuccess = true,
                 Message = "Profile retrieved successfully",
                 Data = user
             };
@@ -61,7 +61,7 @@ namespace Application.Services
 
                 return new()
                 {
-                    IsSucess = false,
+                    IsSuccess = false,
                     Message = "User not found"
                 };
             }
@@ -80,7 +80,7 @@ namespace Application.Services
                 _logger.LogError("Failed to update user {UserId}: {Errors}", user.Id, string.Join(", ", result.Errors.Select(e => e.Description)));
                 return new() 
                 { 
-                    IsSucess = false, 
+                    IsSuccess = false, 
                     Message = "Update failed" 
                 };
             }
@@ -88,7 +88,7 @@ namespace Application.Services
             _logger.LogInformation("Profile updated successfully for userId: {userId}", userId);
             return new() 
             { 
-                IsSucess = true, 
+                IsSuccess = true, 
                 Message = "Profile updated successfully", 
                 Data = user 
             };
@@ -104,7 +104,7 @@ namespace Application.Services
 
                 return new()
                 {
-                    IsSucess = false,
+                    IsSuccess = false,
                     Message = "New password and confirmation do not match"
                 };
             }
@@ -115,7 +115,7 @@ namespace Application.Services
 
                 return new()
                 {
-                    IsSucess = false,
+                    IsSuccess = false,
                     Message = "New password is identical to the old password."
                 };
             }
@@ -128,7 +128,7 @@ namespace Application.Services
 
                 return new()
                 {
-                    IsSucess = false,
+                    IsSuccess = false,
                     Message = "User not found"
                 };
             }
@@ -149,7 +149,7 @@ namespace Application.Services
 
                 return new()
                 {
-                    IsSucess = false,
+                    IsSuccess = false,
                     Message = errorMessage
                 };
             }
@@ -157,7 +157,7 @@ namespace Application.Services
             _logger.LogInformation("Password changed successfully for userId: {userId}", userId);
             return new() 
             { 
-                IsSucess = true, 
+                IsSuccess = true, 
                 Message = "Password changed successfully" 
             };
         }

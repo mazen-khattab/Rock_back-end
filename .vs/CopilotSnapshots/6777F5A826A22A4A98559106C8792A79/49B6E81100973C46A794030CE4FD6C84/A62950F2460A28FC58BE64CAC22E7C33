@@ -1,0 +1,653 @@
+﻿using Application.DTOs;
+using Application.Interfaces;
+using Core.Entities;
+using Hangfire.Server;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using static System.Net.Mime.MediaTypeNames;
+
+namespace Application.Mapping
+{
+    public class Mapper : IMapper
+    {
+        private readonly ILogger<Mapper> _logger;
+
+        public Mapper(ILogger<Mapper> logger)
+        {
+            _logger = logger;
+        }
+
+        #region Map from Entity List to Dto 
+        public List<AllProductsDto> MapToDtoList(IEnumerable<Product> products, int languageId)
+        {
+            _logger?.LogInformation("MapToDtoList<Product>: Starting mapping for {Count} products with languageId: {LanguageId}", 
+                products?.Count() ?? 0, languageId);
+
+            if (products == null)
+            {
+                _logger?.LogError("MapToDtoList<Product>: products parameter is null");
+                throw new ArgumentNullException(nameof(products));
+            }
+
+            var productDtos = new List<AllProductsDto>();
+            foreach (var product in products)
+            {
+                try
+                {
+                    productDtos.Add(MapToDto(product, languageId));
+                    _logger?.LogDebug("MapToDtoList<Product>: Successfully mapped product with Id: {ProductId}", product.Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "MapToDtoList<Product>: Error mapping product with Id: {ProductId}", product?.Id);
+                    throw;
+                }
+            }
+
+            _logger?.LogInformation("MapToDtoList<Product>: Completed mapping {Count} products", productDtos.Count);
+            return productDtos;
+        }
+
+        public List<AllProductsVariantsDto> MapToDtoList(IEnumerable<Variant> variants, int languageId)
+        {
+            if (variants == null)
+            {
+                _logger?.LogError("MapToDtoList<Variant>: variants parameter is null");
+                throw new ArgumentNullException(nameof(variants));
+            }
+
+            var variantDtos = new List<AllProductsVariantsDto>();
+            foreach (var variant in variants)
+            {
+                try
+                {
+                    variantDtos.Add(MapToDto(variant, languageId));
+                    _logger?.LogDebug("MapToDtoList<Variant>: Successfully mapped variant with Id: {VariantId}", variant.Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "MapToDtoList<Variant>: Error mapping variant with Id: {VariantId}", variant?.Id);
+                    throw;
+                }
+            }
+
+            return variantDtos;
+        }
+
+        public List<ProductDetailsVariantDto> MapToDtoList(int languageId, IEnumerable<Variant> variants)
+        {
+            if (variants == null)
+            {
+                _logger?.LogError("MapToDtoList<Variant>: variants parameter is null");
+                throw new ArgumentNullException(nameof(variants));
+            }
+
+            var variantDtos = new List<ProductDetailsVariantDto>();
+            foreach (var variant in variants)
+            {
+                try
+                {
+                    variantDtos.Add(MapToDto(languageId, variant));
+                    _logger?.LogDebug("MapToDtoList<Variant>: Successfully mapped variant with Id: {VariantId}", variant.Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "MapToDtoList<Variant>: Error mapping variant with Id: {VariantId}", variant?.Id);
+                    throw;
+                }
+            }
+
+            return variantDtos;
+        }
+
+        public List<VariantImagesDto> MapToDtoList(IEnumerable<VariantImage> variantImages)
+        {
+            if (variantImages == null)
+            {
+                _logger?.LogError("MapToDtoList<VariantImage>: variantImages parameter is null");
+                throw new ArgumentNullException(nameof(variantImages));
+            }
+
+            var variantImageDtos = new List<VariantImagesDto>();
+            foreach (var variantImage in variantImages)
+            {
+                try
+                {
+                    variantImageDtos.Add(MapToDto(variantImage));
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "MapToDtoList<VariantImage>: Error mapping variant image with Id: {VariantImageId}", 
+                        variantImage?.Id);
+                    throw;
+                }
+            }
+
+            _logger?.LogInformation("MapToDtoList<VariantImage>: Completed mapping {Count} variant images", 
+                variantImageDtos.Count);
+            return variantImageDtos;
+        }
+
+        public List<CartDto> MapToDtoList(IEnumerable<BaseCart> carts)
+        {
+            if (carts == null)
+            {
+                _logger?.LogError("MapToDtoList<Cart>: carts parameter is null");
+                throw new ArgumentNullException(nameof(carts));
+            }
+
+            var cartDtos = new List<CartDto>();
+            foreach (var cart in carts)
+            {
+                try
+                {
+                    cartDtos.Add(MapToDto(cart));
+                    _logger?.LogDebug("MapToDtoList<Cart>: Successfully mapped cart item with Id: {CartId}, VariantId: {VariantId}", 
+                        cart.Id, cart.VariantId);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "MapToDtoList<Cart>: Error mapping cart item with Id: {CartId}", cart?.Id);
+                    throw;
+                }
+            }
+
+            _logger?.LogInformation("MapToDtoList<Cart>: Completed mapping {Count} cart items", cartDtos.Count);
+            return cartDtos;
+        }
+
+        public List<OrderDto> MapToDtoList(IEnumerable<Order> orders, int languageId)
+        {
+            if (orders == null)
+            {
+                _logger?.LogError("MapToDtoList<Order>: Order parameter is null");
+                throw new ArgumentNullException(nameof(orders));
+            }
+
+            var orderDtos = new List<OrderDto>();
+            foreach (var order in orders)
+            {
+                try
+                {
+                    orderDtos.Add(MapToDto(order, languageId));
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "MapToDtoList<Order>: Error mapping Order with Id: {OrderId}", order?.Id);
+                    throw;
+                }
+            }
+
+            _logger?.LogInformation("MapToDtoList<Cart>: Completed mapping {Count} cart items", orderDtos.Count);
+            return orderDtos;
+        }
+
+        public List<OrderDetailsDto> MapToDtoList(IEnumerable<OrderDetail> ordersDetails, int languageId)
+        {
+            if (ordersDetails == null)
+            {
+                _logger?.LogError("MapToDtoList<OrderDetails>: OrderDetails parameter is null");
+                throw new ArgumentNullException(nameof(ordersDetails));
+            }
+
+            var ordersDetailsDto = new List<OrderDetailsDto>();
+            foreach (var orderDetails in ordersDetails)
+            {
+                try
+                {
+                    ordersDetailsDto.Add(MapToDto(orderDetails, languageId));
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "MapToDtoList<Order>: Error mapping Order with Id: {OrderId}", orderDetails?.Id);
+                    throw;
+                }
+            }
+
+            _logger?.LogInformation("MapToDtoList<Cart>: Completed mapping {Count} cart items", ordersDetailsDto.Count);
+            return ordersDetailsDto;
+        }
+
+        public List<AllProductsAdminDto> MapToDtoAdminList(IEnumerable<Product> products, int languageId)
+        {
+            _logger?.LogInformation("MapToDtoAdminList<Product>: Starting mapping for {Count} products with languageId: {LanguageId}", 
+                products?.Count() ?? 0, languageId);
+
+            if (products == null)
+            {
+                _logger?.LogError("MapToDtoAdminList<Product>: products parameter is null");
+                throw new ArgumentNullException(nameof(products));
+            }
+
+            var productDtos = new List<AllProductsAdminDto>();
+            foreach (var product in products)
+            {
+                try
+                {
+                    productDtos.Add(MapToAdminDto(product, languageId));
+                    _logger?.LogDebug("MapToDtoAdminList<Product>: Successfully mapped product with Id: {ProductId}", product.Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "MapToDtoAdminList<Product>: Error mapping product with Id: {ProductId}", product?.Id);
+                    throw;
+                }
+            }
+
+            _logger?.LogInformation("MapToDtoAdminList<Product>: Completed mapping {Count} products", productDtos.Count);
+            return productDtos;
+        }
+        #endregion
+
+
+        #region Map from Entity to Dto
+        public AllProductsDto MapToDto(Product product, int languageId)
+        {
+            if (product == null)
+            {
+                _logger?.LogError("MapToDto<Product>: product parameter is null");
+                throw new ArgumentNullException(nameof(product));
+            }
+
+            try
+            {
+                // Safely select translation values for the requested language id.
+                var translation = product.Translations?
+                    .FirstOrDefault(t => t.LanguageId == languageId);
+
+                var categoryName = product.Category?.Translations?
+                    .FirstOrDefault(ct => ct.LanguageId == languageId)?.Name
+                    ?? string.Empty;
+
+                if (translation == null)
+                {
+                    _logger?.LogWarning("MapToDto<Product>: No translation found for product {ProductId} with languageId: {LanguageId}. " +
+                        "Using default values.", product.Id, languageId);
+                }
+
+                var dto = new AllProductsDto()
+                {
+                    Id = product.Id,
+                    Category = categoryName,
+                    Name = translation?.Name ?? string.Empty,
+                    Price = product.Price,
+                    OriginalPrice = product.OriginalPrice,
+                    Slug = translation?.Slug ?? string.Empty,
+                    IsActive = !product.IsDeleted,
+                    Variants = MapToDtoList(product.Variants ?? Enumerable.Empty<Variant>(), languageId)
+                };
+
+                return dto;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "MapToDto<Product>: Error mapping product with Id: {ProductId}", product.Id);
+                throw;
+            }
+        }
+
+        public AllProductsVariantsDto MapToDto(Variant variant, int languageId)
+        {
+            //_logger?.LogInformation("MapToDto<Variant>: Starting mapping for variant with Id: {VariantId}, LanguageId: {LanguageId}", 
+            //    variant?.Id, languageId);
+
+            if (variant == null)
+            {
+                _logger?.LogError("MapToDto<Variant>: variant parameter is null");
+                throw new ArgumentNullException(nameof(variant));
+            }
+
+            try
+            {
+                // For color, translations exist on ColorTranslation with LanguageId.
+                var colorName = variant.Color?.Translations?
+                    .FirstOrDefault(ct => ct.LanguageId == languageId)?.Name
+                    ?? string.Empty;
+
+                // Size has a single Name property (no translations) in this model.
+                var sizeName = variant.Size?.Name ?? string.Empty;
+
+                if (string.IsNullOrEmpty(colorName) && variant.Color != null)
+                {
+                    _logger?.LogWarning("MapToDto<Variant>: No color translation found for variant {VariantId}, ColorId: {ColorId}, " +
+                        "LanguageId: {LanguageId}", variant.Id, variant.ColorId, languageId);
+                }
+
+                if (string.IsNullOrEmpty(sizeName) && variant.Size != null)
+                {
+                    _logger?.LogWarning("MapToDto<Variant>: Size name is empty for variant {VariantId}, SizeId: {SizeId}",
+                        variant.Id, variant.SizeId);
+                }
+
+                var dto = new AllProductsVariantsDto()
+                {
+                    Id = variant.Id,
+                    ProductId = variant.ProductId,
+                    ColorName = colorName,
+                    HexCode = variant.Color?.HexCode ?? string.Empty,
+                    SizeName = sizeName,
+                    Quantity = variant.Quantity,
+                    Reserved = variant.Reserved,
+                    ImagesDtos = MapToDto(variant.Images.FirstOrDefault() ?? new VariantImage())
+                };
+
+                return dto;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "MapToDto<Variant>: Error mapping variant with Id: {VariantId}", variant.Id);
+                throw;
+            }
+        }
+
+        public ProductDetailsDto MapToDto(int languageId, Product product)
+        {
+            //_logger?.LogInformation("MapToDto<Product>: Starting mapping for product with Id: {ProductId}, LanguageId: {LanguageId}",
+            //      product?.Id, languageId);
+
+            if (product == null)
+            {
+                _logger?.LogError("MapToDto<Product>: product parameter is null");
+                throw new ArgumentNullException(nameof(product));
+            }
+
+            try
+            {
+                // Safely select translation values for the requested language id.
+                var translation = product.Translations?
+                    .FirstOrDefault(t => t.LanguageId == languageId);
+
+                var categoryName = product.Category?.Translations?
+                    .FirstOrDefault(ct => ct.LanguageId == languageId)?.Name
+                    ?? string.Empty;
+
+                if (translation == null)
+                {
+                    _logger?.LogWarning("MapToDto<Product>: No translation found for product {ProductId} with languageId: {LanguageId}. " +
+                        "Using default values.", product.Id, languageId);
+                }
+
+                var dto = new ProductDetailsDto()
+                {
+                    Id = product.Id,
+                    Category = categoryName,
+                    Name = translation?.Name ?? string.Empty,
+                    Description = translation?.Description ?? string.Empty,
+                    Price = product.Price,
+                    OriginalPrice = product.OriginalPrice,
+                    Slug = translation?.Slug ?? string.Empty,
+                    MetaTitle = translation?.MetaTitle ?? string.Empty,
+                    MetaDescription = translation?.MetaDescription ?? string.Empty,
+                    IsActive = !product.IsDeleted,
+                    Variants = MapToDtoList(languageId, product.Variants ?? Enumerable.Empty<Variant>())
+                };
+
+                return dto;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "MapToDto<Product>: Error mapping product with Id: {ProductId}", product.Id);
+                throw;
+            }
+        }
+
+        public ProductDetailsVariantDto MapToDto(int languageId, Variant variant)
+        {
+            if (variant == null)
+            {
+                _logger?.LogError("MapToDto<Variant>: variant parameter is null");
+                throw new ArgumentNullException(nameof(variant));
+            }
+
+            try
+            {
+                // For color, translations exist on ColorTranslation with LanguageId.
+                var colorName = variant.Color?.Translations?
+                    .FirstOrDefault(ct => ct.LanguageId == languageId)?.Name
+                    ?? string.Empty;
+
+                // Size has a single Name property (no translations) in this model.
+                var sizeName = variant.Size?.Name ?? string.Empty;
+
+                if (string.IsNullOrEmpty(colorName) && variant.Color != null)
+                {
+                    _logger?.LogWarning("MapToDto<Variant>: No color translation found for variant {VariantId}, ColorId: {ColorId}, " +
+                        "LanguageId: {LanguageId}", variant.Id, variant.ColorId, languageId);
+                }
+
+                if (string.IsNullOrEmpty(sizeName) && variant.Size != null)
+                {
+                    _logger?.LogWarning("MapToDto<Variant>: Size name is empty for variant {VariantId}, SizeId: {SizeId}",
+                        variant.Id, variant.SizeId);
+                }
+
+                var dto = new ProductDetailsVariantDto()
+                {
+                    Id = variant.Id,
+                    ProductId = variant.ProductId,
+                    ColorName = colorName,
+                    HexCode = variant.Color?.HexCode ?? string.Empty,
+                    SizeName = sizeName,
+                    Quantity = variant.Quantity,
+                    Reserved = variant.Reserved,
+                    ImagesDtos = MapToDtoList(variant.Images ?? new List<VariantImage>())
+                };
+
+                return dto;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "MapToDto<Variant>: Error mapping variant with Id: {VariantId}", variant.Id);
+                throw;
+            }
+        }
+
+        public VariantImagesDto MapToDto(VariantImage variantImage)
+        {
+            _logger?.LogInformation("MapToDto<VariantImage>: Starting mapping for variant image with Id: {VariantImageId}", 
+                variantImage?.Id);
+
+            if (variantImage == null)
+            {
+                _logger?.LogError("MapToDto<VariantImage>: variantImage parameter is null");
+                throw new ArgumentNullException(nameof(variantImage));
+            }
+
+            try
+            {
+                // Be defensive about MediaAsset navigation property.
+                var media = variantImage.MediaAsset;
+
+                if (media == null)
+                {
+                    _logger?.LogWarning("MapToDto<VariantImage>: MediaAsset is null for variant image {VariantImageId}, " +
+                        "VariantId: {VariantId}", variantImage.Id, variantImage.VariantId);
+                }
+
+                var dto = new VariantImagesDto()
+                {
+                    ImageUrl = media?.FilePath ?? string.Empty,
+                    AltText = media?.AltText ?? string.Empty,
+                };
+
+                //_logger?.LogInformation("MapToDto<VariantImage>: Successfully mapped variant image {VariantImageId}. " +
+                //    "VariantId: {VariantId}, ImageUrl: {ImageUrl}", 
+                //    variantImage.Id, variantImage.VariantId, 
+                //    string.IsNullOrEmpty(dto.ImageUrl) ? "empty" : "set");
+
+                return dto;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "MapToDto<VariantImage>: Error mapping variant image with Id: {VariantImageId}", 
+                    variantImage.Id);
+                throw;
+            }
+        }
+
+        public CartDto MapToDto(BaseCart cart)
+        {
+            _logger?.LogInformation("MapToDto<Cart>: Starting mapping for cart item with Id: {CartId}, VariantId: {VariantId}", 
+                cart?.Id, cart?.VariantId);
+
+            if (cart is null)
+            {
+                _logger?.LogError("MapToDto<Cart>: cart parameter is null");
+                throw new ArgumentNullException(nameof(cart));
+            }
+
+            try
+            {
+                var productName = cart.Variant?.Product?.Translations?.FirstOrDefault()?.Name ?? string.Empty;
+                var productDescription = cart.Variant?.Product?.Translations?.FirstOrDefault()?.Description ?? string.Empty;
+                var productPrice = cart.Variant?.Product?.Price ?? 0;
+                var productId = cart.Variant?.ProductId ?? 0;
+                var colorName = cart.Variant?.Color?.Translations?.FirstOrDefault()?.Name ?? string.Empty;
+                var hexCode = cart.Variant?.Color?.HexCode ?? string.Empty;
+                var sizeName = cart.Variant?.Size?.Name ?? string.Empty;
+                var reserved = cart.Variant?.Reserved ?? 0;
+
+                if (cart.Variant == null)
+                {
+                    _logger?.LogWarning("MapToDto<Cart>: Variant is null for cart item {CartId}", cart.Id);
+                }
+
+                if (string.IsNullOrEmpty(productName))
+                {
+                    _logger?.LogWarning("MapToDto<Cart>: Product name is empty for cart item {CartId}, VariantId: {VariantId}, " +
+                        "ProductId: {ProductId}", cart.Id, cart.VariantId, productId);
+                }
+
+                var dto = new CartDto()
+                {
+                    Id = cart.Id,
+                    VariantId = cart.VariantId,
+                    ProductId = productId,
+                    Name = productName,
+                    Description = productDescription,
+                    Price = productPrice,
+                    imagesDtos = MapToDto(cart.Variant?.Images.FirstOrDefault()),
+                    Color = colorName,
+                    HexCode = hexCode,
+                    Size = sizeName,
+                    Reserved = reserved,
+                    Quantity = cart.Quantity,
+                };
+
+                //_logger?.LogInformation("MapToDto<Cart>: Successfully mapped cart item {CartId}. " +
+                //    "ProductId: {ProductId}, ProductName: {ProductName}, Quantity: {Quantity}, Price: {Price}",
+                //    cart.Id, productId, productName, cart.Quantity, productPrice);
+
+                return dto;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "MapToDto<Cart>: Error mapping cart item with Id: {CartId}, VariantId: {VariantId}", 
+                    cart.Id, cart.VariantId);
+                throw;
+            }
+        }
+
+        public OrderDto MapToDto(Order order, int languageId)
+        {
+            if (order is null)
+            {
+                throw new ArgumentNullException(nameof(order));
+            }
+
+            try
+            {
+                var orderDto = new OrderDto()
+                {
+                    OrderNumber = order.Number,
+                    Status = order.Status.ToString(),
+                    TotalPrice = order.TotalPrice,
+                    CreatedAt = order.CreatedAt,
+                    OrderDetails = MapToDtoList(order.OrderDetails, languageId)
+                };
+
+                return orderDto;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "MapToDto<Order>: Error mapping Order with Id: {OrderId}",
+                    order.Id);
+                throw;
+            }
+        }
+
+        public OrderDetailsDto MapToDto(OrderDetail orderDetail, int languageId)
+        {
+            if (orderDetail is null)
+            {
+                throw new ArgumentNullException(nameof(orderDetail));
+            }
+
+            var product = orderDetail.Variant?.Product;
+            var productTranslation = orderDetail.Variant?.Product?.Translations?.FirstOrDefault(t => t.LanguageId == languageId);
+            var color = orderDetail.Variant?.Color;
+            var colorTranslation = orderDetail.Variant?.Color?.Translations?.FirstOrDefault(t => t.LanguageId == languageId);
+            var size = orderDetail.Variant?.Size;
+            var image = orderDetail.Variant?.Images?.FirstOrDefault()?.MediaAsset?.FilePath;
+
+            try
+            {
+                var orderDetailDto = new OrderDetailsDto()
+                {
+                    Name = productTranslation?.Name ?? string.Empty,
+                    Description = productTranslation?.Description ?? string.Empty,
+                    Price = product?.Price ?? 0,
+                    OriginalPrice = product?.OriginalPrice ?? 0,
+                    ColorName = colorTranslation?.Name ?? string.Empty,
+                    HexCode = color?.HexCode ?? string.Empty,
+                    SizeName = size?.Name ?? string.Empty,
+                    Quantity = orderDetail.Quantity,
+                    Image = image ?? string.Empty
+                };
+
+                return orderDetailDto;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "MapToDto<OrderDetail>: Error mapping OrderDetails item with Id: {OrderDetailId}",
+                    orderDetail.Id);
+                throw;
+            }
+        }
+
+        public UserProfileDto MapToDto(User user)
+        {
+            if (user is null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            try
+            {
+                var userProfileDto = new UserProfileDto()
+                {
+                    FirstName = user.Fname ?? string.Empty,
+                    LastName = user.Lname ?? string.Empty,
+                    Email = user.Email ?? string.Empty,
+                    Phone = user.PhoneNumber ?? string.Empty,
+                    Governorate = user.Governorate ?? string.Empty,
+                    City = user.City ?? string.Empty,
+                    FullAddress = user.FullAddress ?? string.Empty
+                };
+
+                return userProfileDto;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "MapToDto<User>: Error mapping User item with Id: {UserId}",
+                    user.Id);
+                throw;
+            }
+        }
+        #endregion
+    }
+}

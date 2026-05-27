@@ -1,0 +1,93 @@
+﻿using Application.Interfaces;
+using Application.Responses;
+using Core.Entities;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class SizesController : ControllerBase
+    {
+        private readonly ISizeService _sizeService;
+        private readonly ILogger<SizesController> _logger;
+
+        public SizesController(ISizeService sizeService, ILogger<SizesController> logger)
+        {
+            _sizeService = sizeService;
+            _logger = logger;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            _logger.LogInformation("HTTP GET request received for api/sizes");
+
+            var result = await _sizeService.GetAll();
+
+            if (!result.IsSuccess)
+            {
+                _logger.LogWarning("Failed to retrieve sizes in controller. Message: {Msg}", result.Message);
+                return BadRequest(new { error = result.Message });
+            }
+
+            _logger.LogInformation("Successfully returning sizes");
+
+            return Ok(new ApiResponse<IEnumerable<Size>>
+            {
+                IsSuccess = true,
+                Data = result.Data,
+                Message = result.Message
+            });
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            _logger.LogInformation("HTTP GET request received for api/sizes/{Id}", id);
+
+            var result = await _sizeService.GetById(id);
+
+            if (!result.IsSuccess)
+            {
+                _logger.LogWarning("Size with ID: {Id} not found or failed to retrieve. Message: {Msg}", id, result.Message);
+                return BadRequest(new { error = result.Message });
+            }
+
+            _logger.LogInformation("Successfully returning size ID: {Id}", id);
+
+            return Ok(new ApiResponse<Size>
+            {
+                IsSuccess = true,
+                Data = result.Data,
+                Message = result.Message
+            });
+        }
+
+        [HttpGet("lookup")]
+        public async Task<IActionResult> GetLookup()
+        {
+            _logger.LogInformation("HTTP GET request received for api/sizes/lookup");
+
+            var result = await _sizeService.Lookup();
+
+            if (!result.IsSuccess)
+            {
+                _logger.LogWarning("Failed to retrieve size lookups. Message: {Msg}", result.Message);
+                return BadRequest(new { error = result.Message });
+            }
+
+            _logger.LogInformation("Successfully returning size lookups for dropdown.");
+
+            return Ok(new ApiResponse<IEnumerable<Size>>
+            {
+                IsSuccess = true,
+                Data = result.Data,
+                Message = result.Message
+            });
+        }
+    }
+}

@@ -47,12 +47,37 @@ namespace Infrastructure.Repositories
             _transaction = null;
         }
 
+        public bool IsTransactionFinished()
+        {
+            return _transaction == null;
+        }
+
         public Task<int> SaveChangesAsync() => _context.SaveChangesAsync();
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_transaction != null)
+            {
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+
+            await _context.DisposeAsync();
+
+            GC.SuppressFinalize(this);
+        }
 
         public void Dispose()
         {
-            _transaction?.Dispose();
+            if (_transaction != null)
+            {
+                _transaction.Dispose();
+                _transaction = null;
+            }
+
             _context.Dispose();
+
+            GC.SuppressFinalize(this);
         }
     }
 }

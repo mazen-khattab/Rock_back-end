@@ -13,5 +13,6 @@ namespace Application.Interfaces
         IQueryable<Product> GetProductsWithIncludes(int languageId);
         Task<ApiResponse<(IEnumerable<Product> Items, int TotalCount)>> GetFilteredProductsAsync(int languageId, ProductFilterDto filterDto);
         Task<ApiResponse<Product>> GetProductById(int id, int langId);
+        Task<ApiResponse<Product>> CreateProduct(ProductDetailsAdminDto productDto);
     }
 }
