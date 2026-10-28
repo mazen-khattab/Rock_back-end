@@ -1,15 +1,23 @@
-﻿using Core.Entities;
+using Core.Entities;
 using Core.Enums;
+using Core.Settings;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Infrastructure.DataSeeding
 {
     public static class Seeding
     {
-        public static async Task SeedingAsync(RoleManager<Role> roleManager, UserManager<User> userManager)
+        public static async Task SeedingAsync(RoleManager<Role> roleManager, UserManager<User> userManager, IOptions<AdmincredentialsSettings> adminSettings)
+        {
+            await SeedingAsync(roleManager, userManager, adminSettings?.Value ?? new AdmincredentialsSettings());
+        }
+
+        public static async Task SeedingAsync(RoleManager<Role> roleManager, UserManager<User> userManager, AdmincredentialsSettings adminSettings)
         {
             // Seed Roles
             var roles = new List<RoleType> { RoleType.User, RoleType.Admin, RoleType.Owner };
@@ -32,14 +40,14 @@ namespace Infrastructure.DataSeeding
             {
                 var user = new User()
                 {
-                    Fname = "mazen",
-                    Lname = "khattab",
-                    UserName = "MK",
-                    Email = "mazenkhtab11@gmail.com",
-                    PhoneNumber = "01023839637"
+                    Fname = adminSettings.Fname,
+                    Lname = adminSettings.Lname,
+                    UserName = adminSettings.UserName,
+                    Email = adminSettings.Email,
+                    PhoneNumber = adminSettings.PhoneNumber
                 };
 
-                await userManager.CreateAsync(user, "Mak.12");
+                await userManager.CreateAsync(user, adminSettings.Password);
 
                 foreach (var roleName in roles)
                 {
