@@ -15,7 +15,6 @@ namespace Core.Entities
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public bool IsActive { get; set; }
-        public DateTime CreatedAt { get; set; }
 
         public ICollection<OfferTranslation> Translations { get; set; } = new List<OfferTranslation>();
         public ICollection<ProductOffer> ProductOffers { get; set; } = new List<ProductOffer>();

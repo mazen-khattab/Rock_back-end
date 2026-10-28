@@ -1,7 +1,9 @@
 ﻿using Application.DTOs;
 using Core.Entities;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System;
+using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,12 +11,9 @@ namespace Application.Mapping
 {
     public static class ProductMappingExtensions
     {
-        public static AllProductsDto ToDto(this Product product, int languageId)
+        public static ProductsDto ToDto(this Product product, int languageId, string baseUrl)
         {
-            if (product == null)
-            {
-                throw new ArgumentNullException(nameof(product));
-            }
+            ArgumentNullException.ThrowIfNull(product);
 
             // Safely select translation values for the requested language id.
             var translation = product.Translations?
@@ -24,7 +23,7 @@ namespace Application.Mapping
                 .FirstOrDefault(ct => ct.LanguageId == languageId)?.Name
                 ?? string.Empty;
 
-            return new AllProductsDto()
+            return new ProductsDto()
             {
                 Id = product.Id,
                 Category = categoryName,
@@ -33,17 +32,20 @@ namespace Application.Mapping
                 OriginalPrice = product.OriginalPrice,
                 Slug = translation?.Slug ?? string.Empty,
                 IsActive = !product.IsDeleted,
-                Variants = product.Variants?.ToDtoList(languageId) ?? new List<AllProductsVariantsDto>()
+                Variants = product.Variants?.ToDtoList(languageId, baseUrl) ?? new List<VariantsDto>()
             };
-
         }
 
-        public static ProductDetailsDto ToDetailsDto(this Product product, int languageId)
+        public static List<ProductsDto> ToDtoList(this IEnumerable<Product> products, int languageId, string baseUrl)
         {
-            if (product == null)
-            {
-                throw new ArgumentNullException(nameof(product));
-            }
+            ArgumentNullException.ThrowIfNull(products);
+
+            return products.Select(p => p.ToDto(languageId, baseUrl)).ToList();
+        }
+
+        public static ProductDetailsDto ToDetailsDto(this Product product, int languageId, string baseUrl)
+        {
+            ArgumentNullException.ThrowIfNull(product);
 
             // Safely select translation values for the requested language id.
             var translation = product.Translations?
@@ -65,16 +67,13 @@ namespace Application.Mapping
                 MetaTitle = translation?.MetaTitle ?? string.Empty,
                 MetaDescription = translation?.MetaDescription ?? string.Empty,
                 IsActive = !product.IsDeleted,
-                Variants = product.Variants?.ToDetailsDtoList(languageId) ?? new List<ProductDetailsVariantDto>()
+                Variants = product.Variants?.ToDetailsDtoList(languageId, baseUrl) ?? new List<VariantDetailsDto>()
             };
         }
 
-        public static AllProductsAdminDto ToAdminDto(this Product product, int languageId, string baseURL)
+        public static ProductsAdminDto ToAdminDto(this Product product, int languageId, string baseURL)
         {
-            if (product == null)
-            {
-                throw new ArgumentNullException(nameof(product));
-            }
+            ArgumentNullException.ThrowIfNull(product);
 
             // Safely select translation values for the requested language id.
             var translation = product.Translations?
@@ -103,7 +102,7 @@ namespace Application.Mapping
                 .FirstOrDefault()?.MediaAsset?.FilePath
                 ?? string.Empty;
 
-            return new AllProductsAdminDto()
+            return new ProductsAdminDto()
             {
                 Id = product.Id,
                 Name = translation?.Name ?? string.Empty,
@@ -112,31 +111,60 @@ namespace Application.Mapping
                 Reserved = totalReserved,
                 Available = availableQuantity,
                 Price = product.Price,
-                IsActive = !product.IsDeleted,
+                IsActive = product.IsActive,
                 Sizes = availableSizes,
                 ImageUrl = $"{baseURL}/{imageUrl}".TrimEnd('/')
             };
         }
 
-        public static List<AllProductsDto> ToDtoList(this IEnumerable<Product> products, int languageId)
+        public static List<ProductsAdminDto> ToDtoAdminList(this IEnumerable<Product> products, int languageId, string baseURL)
         {
-            if (products == null)
-            {
-                throw new ArgumentNullException(nameof(products));
-            }
-
-            return products.Select(p => p.ToDto(languageId)).ToList();
-        }
-
-        public static List<AllProductsAdminDto> ToDtoAdminList(this IEnumerable<Product> products, int languageId, string baseURL)
-        {
-            if (products == null)
-            {
-                throw new ArgumentNullException(nameof(products));
-            }
+            ArgumentNullException.ThrowIfNull(products);
 
             return products.Select(p => p.ToAdminDto(languageId, baseURL)).ToList();
         }
 
+        public static ProductDetailsAdminDto ToAdminDetailsDto(this Product product, string baseURL)
+        {
+            ArgumentNullException.ThrowIfNull(product);
+
+            var enTranslation = product.Translations?
+                .FirstOrDefault(t => (t.Language?.Code ?? string.Empty) == "en");
+
+            var arTranslation = product.Translations?
+                .FirstOrDefault(t => (t.Language?.Code ?? string.Empty) == "ar");
+
+            return new ProductDetailsAdminDto()
+            {
+                Id = product.Id,
+                CategoryId = product.CategoryId,
+                NameAr = arTranslation?.Name ?? string.Empty,
+                NameEn = enTranslation?.Name ?? string.Empty,
+                DescriptionAr = arTranslation?.Description ?? string.Empty,
+                DescriptionEn = enTranslation?.Description ?? string.Empty,
+                Price = product.Price,
+                SlugAr = arTranslation?.Slug ?? string.Empty,
+                SlugEn = enTranslation?.Slug ?? string.Empty,
+                MetaTitleAr = arTranslation?.MetaTitle ?? string.Empty,
+                MetaTitleEn = enTranslation?.MetaTitle ?? string.Empty,
+                MetaDescriptionAr = arTranslation?.MetaDescription ?? string.Empty,
+                MetaDescriptionEn = enTranslation?.MetaDescription ?? string.Empty,
+                IsActive = product.IsActive,
+                Variants = product.Variants.ToAdminDetailsDtoList(baseURL) ?? new List<VariantsDetailsAdminDto>()
+            };
+        }
+
+        public static Product FromDetialsAdminDto(this Product product, ProductDetailsAdminDto dto)
+        {
+            ArgumentNullException.ThrowIfNull(product);
+            ArgumentNullException.ThrowIfNull(dto);
+
+            product.CategoryId = dto.CategoryId;
+            product.Price = dto.Price;
+            product.IsActive = dto.IsActive;
+            product.OriginalPrice = dto.Price;
+
+            return product;
+        }
     }
 }

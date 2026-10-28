@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Application.DTOs
 {
-    public class VariantDto
+    public class BaseVariantDto
     {
         public int Id { get; set; }
         public int ProductId { get; set; }

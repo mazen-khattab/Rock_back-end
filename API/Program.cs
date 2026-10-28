@@ -110,6 +110,15 @@ builder.Services.AddCors(option =>
 
 var app = builder.Build();
 
+var supportedCultures = new[] { "ar", "en" };
+ 
+var logalizationOptions = new RequestLocalizationOptions()
+    .SetDefaultCulture(supportedCultures[0])
+    .AddSupportedCultures(supportedCultures)
+    .AddSupportedUICultures(supportedCultures);
+
+app.UseRequestLocalization(logalizationOptions);
+
 #region DataSeeding
 try
 {

@@ -8,12 +8,9 @@ namespace Application.Mapping
 {
     public static class VariantMappingExtensions
     {
-        public static AllProductsVariantsDto ToDto(this Variant variant, int languageId)
+        public static VariantsDto ToDto(this Variant variant, int languageId, string baseUrl)
         {
-            if (variant == null)
-            {
-                throw new ArgumentNullException(nameof(variant));
-            }
+            ArgumentNullException.ThrowIfNull(variant);
 
             // For color, translations exist on ColorTranslation with LanguageId.
             var colorName = variant.Color?.Translations?
@@ -23,7 +20,7 @@ namespace Application.Mapping
             // Size has a single Name property (no translations) in this model.
             var sizeName = variant.Size?.Name ?? string.Empty;
 
-            var dto = new AllProductsVariantsDto()
+            var dto = new VariantsDto()
             {
                 Id = variant.Id,
                 ProductId = variant.ProductId,
@@ -32,18 +29,22 @@ namespace Application.Mapping
                 SizeName = sizeName,
                 Quantity = variant.Quantity,
                 Reserved = variant.Reserved,
-                ImagesDtos = variant.Images?.FirstOrDefault()?.ToDto() ?? new VariantImagesDto()
+                ImagesDtos = variant.Images?.FirstOrDefault()?.ToDto(baseUrl) ?? new ImagesDto()
             };
 
             return dto;
         }
 
-        public static ProductDetailsVariantDto ToDetailsDto(this Variant variant, int languageId)
+        public static List<VariantsDto> ToDtoList(this IEnumerable<Variant> variants, int languageId, string baseUrl)
         {
-            if (variant == null)
-            {
-                throw new ArgumentNullException(nameof(variant));
-            }
+            ArgumentNullException.ThrowIfNull(variants);
+
+            return variants.Select(v => v.ToDto(languageId, baseUrl)).ToList();
+        }
+
+        public static VariantDetailsDto ToDetailsDto(this Variant variant, int languageId, string baseUrl)
+        {
+            ArgumentNullException.ThrowIfNull(variant);
 
             // For color, translations exist on ColorTranslation with LanguageId.
             var colorName = variant.Color?.Translations?
@@ -53,7 +54,7 @@ namespace Application.Mapping
             // Size has a single Name property (no translations) in this model.
             var sizeName = variant.Size?.Name ?? string.Empty;
 
-            var dto = new ProductDetailsVariantDto()
+            var dto = new VariantDetailsDto()
             {
                 Id = variant.Id,
                 ProductId = variant.ProductId,
@@ -62,31 +63,39 @@ namespace Application.Mapping
                 SizeName = sizeName,
                 Quantity = variant.Quantity,
                 Reserved = variant.Reserved,
-                ImagesDtos = variant.Images.ToDtoList() ?? new List<VariantImagesDto>()
+                ImagesDtos = variant.Images.ToDtoList(baseUrl) ?? new List<ImagesDto>()
             };
 
             return dto;
         }
 
-        public static List<AllProductsVariantsDto> ToDtoList(this IEnumerable<Variant> variants, int languageId)
+        public static List<VariantDetailsDto> ToDetailsDtoList(this IEnumerable<Variant> variants, int languageId, string baseUrl)
         {
-            if (variants == null)
-            {
-                throw new ArgumentNullException(nameof(variants));
-            }
+            ArgumentNullException.ThrowIfNull(variants);
 
-            return variants.Select(v => v.ToDto(languageId)).ToList();
+            return variants.Select(v => v.ToDetailsDto(languageId, baseUrl)).ToList();
         }
 
-        public static List<ProductDetailsVariantDto> ToDetailsDtoList(this IEnumerable<Variant> variants, int languageId)
+        public static VariantsDetailsAdminDto ToAdminDetailsDto(this Variant variant, string baseURL)
         {
-            if (variants == null)
-            {
-                throw new ArgumentNullException(nameof(variants));
-            }
+            ArgumentNullException.ThrowIfNull(variant);
 
-            return variants.Select(v => v.ToDetailsDto(languageId)).ToList();
+            var dto = new VariantsDetailsAdminDto()
+            {
+                Id = variant.Id,
+                ColorId = variant.ColorId,
+                SizeId = variant.SizeId,
+                Quantity = variant.Quantity,
+                Images = variant.Images.ToAdminDtoList(baseURL) ?? new List<ImagesAdminDto>()
+            };
+            return dto;
         }
 
+        public static List<VariantsDetailsAdminDto> ToAdminDetailsDtoList(this IEnumerable<Variant> variants, string baseURL)
+        {
+            ArgumentNullException.ThrowIfNull(variants);
+
+            return variants.Select(v => v.ToAdminDetailsDto(baseURL)).ToList();
+        }
     }
 }

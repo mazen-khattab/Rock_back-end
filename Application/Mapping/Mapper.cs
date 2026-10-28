@@ -22,7 +22,7 @@ namespace Application.Mapping
         }
 
         #region Map from Entity List to Dto 
-        public List<AllProductsDto> MapToDtoList(IEnumerable<Product> products, int languageId)
+        public List<ProductsDto> MapToDtoList(IEnumerable<Product> products, int languageId)
         {
             _logger?.LogInformation("MapToDtoList<Product>: Starting mapping for {Count} products with languageId: {LanguageId}",
                 products?.Count() ?? 0, languageId);
@@ -33,7 +33,7 @@ namespace Application.Mapping
                 throw new ArgumentNullException(nameof(products));
             }
 
-            var productDtos = new List<AllProductsDto>();
+            var productDtos = new List<ProductsDto>();
             foreach (var product in products)
             {
                 try
@@ -52,7 +52,7 @@ namespace Application.Mapping
             return productDtos;
         }
 
-        public List<AllProductsVariantsDto> MapToDtoList(IEnumerable<Variant> variants, int languageId)
+        public List<VariantsDto> MapToDtoList(IEnumerable<Variant> variants, int languageId)
         {
             if (variants == null)
             {
@@ -60,7 +60,7 @@ namespace Application.Mapping
                 throw new ArgumentNullException(nameof(variants));
             }
 
-            var variantDtos = new List<AllProductsVariantsDto>();
+            var variantDtos = new List<VariantsDto>();
             foreach (var variant in variants)
             {
                 try
@@ -78,7 +78,7 @@ namespace Application.Mapping
             return variantDtos;
         }
 
-        public List<ProductDetailsVariantDto> MapToDtoList(int languageId, IEnumerable<Variant> variants)
+        public List<VariantDetailsDto> MapToDtoList(int languageId, IEnumerable<Variant> variants)
         {
             if (variants == null)
             {
@@ -86,7 +86,7 @@ namespace Application.Mapping
                 throw new ArgumentNullException(nameof(variants));
             }
 
-            var variantDtos = new List<ProductDetailsVariantDto>();
+            var variantDtos = new List<VariantDetailsDto>();
             foreach (var variant in variants)
             {
                 try
@@ -104,7 +104,7 @@ namespace Application.Mapping
             return variantDtos;
         }
 
-        public List<VariantImagesDto> MapToDtoList(IEnumerable<VariantImage> variantImages)
+        public List<ImagesDto> MapToDtoList(IEnumerable<VariantImage> variantImages)
         {
             if (variantImages == null)
             {
@@ -112,7 +112,7 @@ namespace Application.Mapping
                 throw new ArgumentNullException(nameof(variantImages));
             }
 
-            var variantImageDtos = new List<VariantImagesDto>();
+            var variantImageDtos = new List<ImagesDto>();
             foreach (var variantImage in variantImages)
             {
                 try
@@ -160,7 +160,7 @@ namespace Application.Mapping
             return cartDtos;
         }
 
-        public List<OrderDto> MapToDtoList(IEnumerable<Order> orders, int languageId)
+        public List<OrderHistoryDto> MapToDtoList(IEnumerable<Order> orders, int languageId)
         {
             if (orders == null)
             {
@@ -168,7 +168,7 @@ namespace Application.Mapping
                 throw new ArgumentNullException(nameof(orders));
             }
 
-            var orderDtos = new List<OrderDto>();
+            var orderDtos = new List<OrderHistoryDto>();
             foreach (var order in orders)
             {
                 try
@@ -212,7 +212,7 @@ namespace Application.Mapping
             return ordersDetailsDto;
         }
 
-        public List<AllProductsAdminDto> MapToDtoAdminList(IEnumerable<Product> products, int languageId)
+        public List<ProductsAdminDto> MapToDtoAdminList(IEnumerable<Product> products, int languageId)
         {
             if (products == null)
             {
@@ -220,7 +220,7 @@ namespace Application.Mapping
                 throw new ArgumentNullException(nameof(products));
             }
 
-            var productDtos = new List<AllProductsAdminDto>();
+            var productDtos = new List<ProductsAdminDto>();
             foreach (var product in products)
             {
                 try
@@ -240,7 +240,7 @@ namespace Application.Mapping
 
 
         #region Map from Entity to Dto
-        public AllProductsDto MapToDto(Product product, int languageId)
+        public ProductsDto MapToDto(Product product, int languageId)
         {
             if (product == null)
             {
@@ -264,7 +264,7 @@ namespace Application.Mapping
                         "Using default values.", product.Id, languageId);
                 }
 
-                var dto = new AllProductsDto()
+                var dto = new ProductsDto()
                 {
                     Id = product.Id,
                     Category = categoryName,
@@ -285,7 +285,7 @@ namespace Application.Mapping
             }
         }
 
-        public AllProductsVariantsDto MapToDto(Variant variant, int languageId)
+        public VariantsDto MapToDto(Variant variant, int languageId)
         {
             //_logger?.LogInformation("MapToDto<Variant>: Starting mapping for variant with Id: {VariantId}, LanguageId: {LanguageId}", 
             //    variant?.Id, languageId);
@@ -318,7 +318,7 @@ namespace Application.Mapping
                         variant.Id, variant.SizeId);
                 }
 
-                var dto = new AllProductsVariantsDto()
+                var dto = new VariantsDto()
                 {
                     Id = variant.Id,
                     ProductId = variant.ProductId,
@@ -390,7 +390,7 @@ namespace Application.Mapping
             }
         }
 
-        public ProductDetailsVariantDto MapToDto(int languageId, Variant variant)
+        public VariantDetailsDto MapToDto(int languageId, Variant variant)
         {
             if (variant == null)
             {
@@ -420,7 +420,7 @@ namespace Application.Mapping
                         variant.Id, variant.SizeId);
                 }
 
-                var dto = new ProductDetailsVariantDto()
+                var dto = new VariantDetailsDto()
                 {
                     Id = variant.Id,
                     ProductId = variant.ProductId,
@@ -441,7 +441,7 @@ namespace Application.Mapping
             }
         }
 
-        public VariantImagesDto MapToDto(VariantImage variantImage)
+        public ImagesDto MapToDto(VariantImage variantImage)
         {
             _logger?.LogInformation("MapToDto<VariantImage>: Starting mapping for variant image with Id: {VariantImageId}",
                 variantImage?.Id);
@@ -463,7 +463,7 @@ namespace Application.Mapping
                         "VariantId: {VariantId}", variantImage.Id, variantImage.VariantId);
                 }
 
-                var dto = new VariantImagesDto()
+                var dto = new ImagesDto()
                 {
                     ImageUrl = media?.FilePath ?? string.Empty,
                     AltText = media?.AltText ?? string.Empty,
@@ -547,7 +547,7 @@ namespace Application.Mapping
             }
         }
 
-        public OrderDto MapToDto(Order order, int languageId)
+        public OrderHistoryDto MapToDto(Order order, int languageId)
         {
             if (order is null)
             {
@@ -556,12 +556,11 @@ namespace Application.Mapping
 
             try
             {
-                var orderDto = new OrderDto()
+                var orderDto = new OrderHistoryDto()
                 {
                     OrderNumber = order.Number,
                     Status = order.Status.ToString(),
                     TotalPrice = order.TotalPrice,
-                    CreatedAt = order.CreatedAt,
                     OrderDetails = MapToDtoList(order.OrderDetails, languageId)
                 };
 
@@ -644,7 +643,7 @@ namespace Application.Mapping
             }
         }
 
-        public AllProductsAdminDto MapToAdminDto(Product product, int languageId)
+        public ProductsAdminDto MapToAdminDto(Product product, int languageId)
         {
             if (product == null)
             {
@@ -687,7 +686,7 @@ namespace Application.Mapping
                     .FirstOrDefault()?.MediaAsset?.FilePath
                     ?? string.Empty;
 
-                var dto = new AllProductsAdminDto()
+                var dto = new ProductsAdminDto()
                 {
                     Id = product.Id,
                     Name = translation?.Name ?? string.Empty,

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Application.DTOs
 {
-    public class AllProductsAdminDto
+    public class ProductsAdminDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;

@@ -8,8 +8,10 @@ namespace Application.Interfaces
 {
     public interface ICategoryService : IServices<Category>
     {
-        Task<ApiResponse<(IEnumerable<Category> Items, int TotalCount)>> GetAll(int langId);
-        Task<ApiResponse<Category>> GetById(int categoryId, int langId);
-        Task<ApiResponse<IEnumerable<Category>>> Lookup(int langId);
+        Task<ApiResponse<(IEnumerable<CategoryDto> Items, int TotalCount)>> GetAll(string langCode);
+        Task<(IEnumerable<Category>, int)> FetchAllCategoriesAsync(int langId);
+        Task<ApiResponse<CategoryDetailsDto>> GetById(int categoryId, string langCode);
+        Task<Category?> FetchCategoryByIdAsync(int categoryId, int langId);
+        Task<ApiResponse<IEnumerable<CategoryLookupDto>>> Lookup(string langCode);
     }
 }

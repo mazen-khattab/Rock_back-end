@@ -1,11 +1,10 @@
-﻿using Application.DTOs;
+﻿using API.Extensions;
+using Application.DTOs;
 using Application.Interfaces;
-using Application.Mapping;
 using Application.Responses;
-using Core.Entities;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 using System.Security.Claims;
 
 namespace API.Controllers
@@ -25,48 +24,62 @@ namespace API.Controllers
 
         private string GetUserId()
         {
+            _logger.LogInformation("Retrieving user ID from claims in 'GetUserId' method");
+
             return User.FindFirstValue(ClaimTypes.NameIdentifier)
                 ?? throw new UnauthorizedAccessException("Unauthorize user");
+        }
+
+        private string BaseURL()
+        {
+            var baseURL = $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
+            _logger.LogInformation("Base URL for product images: {BaseUrl}", baseURL);
+
+            return baseURL;
+        }
+
+        private string GetLangCode()
+        {
+            _logger.LogInformation("Getting the current language code from the request");
+            string currentLang = CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
+            _logger.LogInformation("Current language code: {LangCode}", currentLang);
+
+            return currentLang;
         }
 
 
         [HttpGet]
         [Authorize]
-        [Route("GetUserCart/{langId}")]
-        public async Task<IActionResult> GetUserCart(int langId)
+        [Route("GetUserCart")]  
+        public async Task<IActionResult> GetUserCart()
         {
-            try
+            string currentLang = GetLangCode();
+            string baseURL = BaseURL();
+
+            int userId = int.Parse(GetUserId());
+            _logger.LogDebug("Getting the cart of user: {0}", userId);
+
+            var result = await _cartService.GetUserCart(userId, currentLang, baseURL);
+
+            if (result is not null && result.IsSuccess)
             {
-                int userId = int.Parse(GetUserId());
-                _logger.LogDebug("Getting the cart of user: {0}", userId);
-
-                var result = await _cartService.GetUserCart(userId, langId);
-
-                if (!result.IsSuccess)
-                {
-                    _logger.LogWarning("Failed to get the cart of user {UserId}: {Message}", userId, result.Message);
-                    return BadRequest(result.Message);
-                }
-
-                _logger.LogInformation("convert the userCart to cartDto for user {UserId}", userId);
-                var cartDto = result?.Data?.ToDtoList() ?? new List<CartDto>();
-
-                _logger.LogInformation("Successfully gettign the cart for user {UserId}", userId);
-                return Ok(new ApiResponse<IEnumerable<CartDto>>()
-                {
-                    IsSuccess = true,
-                    Message = "Successfully merging the cart",
-                    Data = cartDto
-                });
+                _logger.LogInformation("Successfully getting the cart for user {UserId}", userId);
+                return Ok(result);
             }
-            catch (Exception ex)
+
+            _logger.LogWarning("Failed to get the cart of user {UserId}: {Message}", userId, result?.Message ?? "");
+
+            var errorResponse = new ApiErrorResponse
             {
-                _logger.LogError(ex, "Exception in GetUserCart endpoint");
-                return BadRequest(new
-                {
-                    Message = ex.Message,
-                });
-            }
+                IsSuccess = false,
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = result?.Message ?? "Failed to get the cart of user.",
+                Path = "api/Carts/GetUserCart",
+                Method = HttpMethods.Get,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return BadRequest(errorResponse);
         }
 
         [HttpPost]
@@ -78,32 +91,32 @@ namespace API.Controllers
 
             _logger.LogInformation("AddToCartUser endpoint called - VariantId: {VariantId}, Quantity: {Quantity}", variantId, quantity);
 
-            try
+            quantity = quantity <= 0 ? 1 : quantity;
+
+            int userId = int.Parse(GetUserId());
+            _logger.LogDebug("User {UserId} attempting to add item {variantId} to cart", userId, variantId);
+
+            var result = await _cartService.AddToUserCart(userId, variantId, quantity);
+
+            if (result is not null && result.IsSuccess)
             {
-                quantity = quantity <= 0 ? 1 : quantity;
-
-                int userId = int.Parse(GetUserId());
-                _logger.LogDebug("User {UserId} attempting to add item {variantId} to cart", userId, variantId);
-
-                var result = await _cartService.AddToUserCart(userId, variantId, quantity);
-
-                if (!result.IsSuccess)
-                {
-                    _logger.LogWarning("Failed to add item to cart for user {UserId}: {Message}", userId, result.Message);
-                    return BadRequest(result.Message);
-                }
-
                 _logger.LogInformation("Successfully added item to cart for user {UserId}", userId);
                 return Ok(result);
             }
-            catch (Exception ex)
+
+            _logger.LogWarning("Failed to add item to cart for user {UserId}: {Message}", userId, result?.Message ?? "");
+
+            var errorResponse = new ApiErrorResponse
             {
-                _logger.LogError(ex, "Exception in AddToCartUser endpoint");
-                return BadRequest(new
-                {
-                    Message = ex.Message,
-                });
-            }
+                IsSuccess = false,
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = result?.Message ?? "Failed to add item to cart.",
+                Path = "api/Carts/AddToCartUser",
+                Method = HttpMethods.Post,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return BadRequest(errorResponse);
         }
 
         [HttpPut]
@@ -115,30 +128,32 @@ namespace API.Controllers
 
             _logger.LogInformation("IncreaseUserAmount endpoint called - VariantId: {VariantId}", variantId);
 
-            try
+            int userId = int.Parse(GetUserId());
+            _logger.LogDebug("User {UserId} attempting increase the amount of itme: {variantId}", userId, variantId);
+
+            var result = await _cartService.IncreaseUserAmount(userId, variantId);
+
+            if (result is not null && result.IsSuccess)
             {
-                int userId = int.Parse(GetUserId());
-                _logger.LogDebug("User {UserId} attempting increase the amount of itme: {variantId}", userId, variantId);
-
-                var result = await _cartService.IncreaseUserAmount(userId, variantId);
-
-                if (!result.IsSuccess)
-                {
-                    _logger.LogWarning("Failed to increase the amount for user {UserId}: {Message}", userId, result.Message);
-                    return BadRequest(result.Message);
-                }
-
                 _logger.LogInformation("Successfully increased the amount for user {UserId}", userId);
                 return Ok(result);
             }
-            catch (Exception ex)
+
+            _logger.LogWarning("Failed to increase the amount for user {UserId}: {Message}", userId, result?.Message ?? "");
+
+            int statusCode = result!.ErrorType.ToHttpStatusCode();
+
+            var errorResponse = new ApiErrorResponse
             {
-                _logger.LogError(ex, "Exception in IncreaseUserAmount endpoint");
-                return BadRequest(new
-                {
-                    Message = ex.Message,
-                });
-            }
+                IsSuccess = false,
+                StatusCode = statusCode,
+                Message = result?.Message ?? "Failed to increase the amount.",
+                Path = "api/Carts/IncreaseUserAmount",
+                Method = HttpMethods.Put,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return StatusCode(statusCode, errorResponse);
         }
 
         [HttpPut]
@@ -150,30 +165,30 @@ namespace API.Controllers
 
             _logger.LogInformation("DecreaseUserAmount endpoint called - VariantId: {VariantId}", variantId);
 
-            try
+            int userId = int.Parse(GetUserId());
+            _logger.LogDebug("User {UserId} attempting decrease the amount of itme: {variantId}", userId, variantId);
+
+            var result = await _cartService.DecreaseUserAmount(userId, variantId);
+
+            if (result is not null && result.IsSuccess)
             {
-                int userId = int.Parse(GetUserId());
-                _logger.LogDebug("User {UserId} attempting decrease the amount of itme: {variantId}", userId, variantId);
-
-                var result = await _cartService.DecreaseUserAmount(userId, variantId);
-
-                if (!result.IsSuccess)
-                {
-                    _logger.LogWarning("Failed to decrease the amount for user {UserId}: {Message}", userId, result.Message);
-                    return BadRequest(result.Message);
-                }
-
                 _logger.LogInformation("Successfully decreased the amount for user {UserId}", userId);
                 return Ok(result);
             }
-            catch (Exception ex)
+
+            _logger.LogWarning("Failed to decrease the amount for user {UserId}: {Message}", userId, result?.Message ?? "");
+
+            var errorResponse = new ApiErrorResponse
             {
-                _logger.LogError(ex, "Exception in DecreaseUserAmount endpoint");
-                return BadRequest(new
-                {
-                    Message = ex.Message,
-                });
-            }
+                IsSuccess = false,
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = result?.Message ?? "Failed to decrease the amount.",
+                Path = "api/Carts/DecreaseUserAmount",
+                Method = HttpMethods.Put,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return BadRequest(errorResponse);
         }
 
         [HttpDelete]
@@ -183,68 +198,71 @@ namespace API.Controllers
         {
             _logger.LogInformation("RemoveUserItem endpoint called - VariantId: {VariantId}", variantId);
 
-            try
+            int userId = int.Parse(GetUserId());
+            _logger.LogDebug("User {UserId} attempting remove itme: {variantId}", userId, variantId);
+
+            var result = await _cartService.RemoveUserItem(userId, variantId);
+
+            if (result is not null && result.IsSuccess)
             {
-                int userId = int.Parse(GetUserId());
-                _logger.LogDebug("User {UserId} attempting remove itme: {variantId}", userId, variantId);
-
-                var result = await _cartService.RemoveUserItem(userId, variantId);
-
-                if (!result.IsSuccess)
-                {
-                    _logger.LogWarning("Failed to remove itme for user {UserId}: {Message}", userId, result.Message);
-                    return BadRequest(result.Message);
-                }
-
                 _logger.LogInformation("Successfully removed the itme for user {UserId}", userId);
                 return Ok(result);
             }
-            catch (Exception ex)
+
+            _logger.LogWarning("Failed to remove itme for user {UserId}: {Message}", userId, result?.Message ?? "");
+
+            var errorResponse = new ApiErrorResponse
             {
-                _logger.LogError(ex, "Exception in RemoveUserItem endpoint");
-                return BadRequest(new
-                {
-                    Message = ex.Message,
-                });
-            }
+                IsSuccess = false,
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = result?.Message ?? "Failed to remove itme.",
+                Path = "api/Carts/RemoveUserItem/{variantId}",
+                Method = HttpMethods.Delete,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return BadRequest(errorResponse);
         }
 
         [HttpGet]
-        [Route("GetGuestCart/{langId}/{guestId}")]
-        public async Task<IActionResult> GetGuestCart(string guestId, int langId)
+        [Route("GetGuestCart/{guestId}")]
+        public async Task<IActionResult> GetGuestCart(string guestId)
         {
-            try
+            string currentLang = GetLangCode();
+            string baseURL = BaseURL();
+
+            _logger.LogDebug("Getting the cart of gueset: {0}", guestId);
+
+            var result = await _cartService.GetGuestCart(guestId, currentLang, baseURL);
+
+            if (result is not null && result.IsSuccess)
             {
-                _logger.LogDebug("Getting the cart of gueset: {0}", guestId);
-
-                var result = await _cartService.GetGuestCart(guestId, langId);
-
-                if (!result.IsSuccess)
-                {
-                    _logger.LogWarning("Failed to get the cart of gueset {GuestId}: {Message}", guestId, result.Message);
-                    return BadRequest(result.Message);
-                }
-
                 _logger.LogInformation("convert the guestCart to cartDto for user {GuestId}", guestId);
 
-                var cartDto = result?.Data?.ToDtoList() ?? new List<CartDto>();
+                var cartDto = result.Data;
 
                 _logger.LogInformation("Successfully gettign the cart for gueset {GuestId}", guestId);
                 return Ok(new ApiResponse<IEnumerable<CartDto>>()
                 {
                     IsSuccess = true,
-                    Message = "Successfully merging the cart",
+                    Message = "Successfully gettign the cart",
                     Data = cartDto
                 });
             }
-            catch (Exception ex)
+
+            _logger.LogWarning("Failed to get the cart for gueset {GuestId}: {Message}", guestId, result?.Message ?? "");
+
+            var errorResponse = new ApiErrorResponse
             {
-                _logger.LogError(ex, "Exception in GetGuestCart endpoint");
-                return BadRequest(new
-                {
-                    Message = ex.Message,
-                });
-            }
+                IsSuccess = false,
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = result?.Message ?? "Failed to get the cart.",
+                Path = "api/Carts/GetGuestCart/{guestId}",
+                Method = HttpMethods.Get,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return BadRequest(errorResponse);
         }
 
         [HttpPost]
@@ -256,31 +274,31 @@ namespace API.Controllers
 
             _logger.LogInformation("AddToGuestCart endpoint called - VariantId: {VariantId}, Quantity: {Quantity}", variantId, quantity);
 
-            try
+            quantity = quantity <= 0 ? 1 : quantity;
+
+            _logger.LogDebug("Guest {GuestId} attempting to add item {variantId} to cart", guestId, variantId);
+
+            var result = await _cartService.AddToGuestCart(guestId, variantId, quantity);
+
+            if (result is not null && result.IsSuccess)
             {
-                quantity = quantity <= 0 ? 1 : quantity;
-
-                _logger.LogDebug("Guest {GuestId} attempting to add item {variantId} to cart", guestId, variantId);
-
-                var result = await _cartService.AddToGuestCart(guestId, variantId, quantity);
-
-                if (!result.IsSuccess)
-                {
-                    _logger.LogWarning("Failed to add item to cart for guest {GuestId}: {Message}", guestId, result.Message);
-                    return BadRequest(result.Message);
-                }
-
                 _logger.LogInformation("Successfully added item to cart for guest {GuestId}", guestId);
                 return Ok(result);
             }
-            catch (Exception ex)
+
+            _logger.LogWarning("Failed to add item to cart for guest {GuestId}: {Message}", guestId, result?.Message ?? "");
+
+            var errorResponse = new ApiErrorResponse
             {
-                _logger.LogError(ex, "Exception in AddToGuestCart endpoint");
-                return BadRequest(new
-                {
-                    Message = ex.Message,
-                });
-            }
+                IsSuccess = false,
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = result?.Message ?? "Failed to add item to cart.",
+                Path = "api/Carts/AddToGuestCart",
+                Method = HttpMethods.Post,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return BadRequest(errorResponse);
         }
 
         [HttpPut]
@@ -291,30 +309,29 @@ namespace API.Controllers
             int variantId = guestCartOperationDto.VariantId;
 
             _logger.LogInformation("IncreaseGuestAmount endpoint called - VariantId: {VariantId}", variantId);
+            _logger.LogDebug("Guest {GuestId} attempting increase the amount of itme: {variantId}", guestId, variantId);
 
-            try
+            var result = await _cartService.IncreaseGuestAmount(guestId, variantId);
+
+            if (result is not null && result.IsSuccess)
             {
-                _logger.LogDebug("Guest {GuestId} attempting increase the amount of itme: {variantId}", guestId, variantId);
-
-                var result = await _cartService.IncreaseGuestAmount(guestId, variantId);
-
-                if (!result.IsSuccess)
-                {
-                    _logger.LogWarning("Failed to increase the amount for guest {GuestId}: {Message}", guestId, result.Message);
-                    return BadRequest(result.Message);
-                }
-
                 _logger.LogInformation("Successfully increased the amount for guest {GuestId}", guestId);
                 return Ok(result);
             }
-            catch (Exception ex)
+
+            _logger.LogWarning("Failed to increase the amount for guest {GuestId}: {Message}", guestId, result?.Message ?? "");
+
+            var errorResponse = new ApiErrorResponse
             {
-                _logger.LogError(ex, "Exception in IncreaseGuestAmount endpoint");
-                return BadRequest(new
-                {
-                    Message = ex.Message,
-                });
-            }
+                IsSuccess = false,
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = result?.Message ?? "Failed to increase the amount.",
+                Path = "api/Carts/IncreaseGuestAmount",
+                Method = HttpMethods.Put,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return BadRequest(errorResponse);
         }
 
         [HttpPut]
@@ -325,30 +342,29 @@ namespace API.Controllers
             int variantId = guestCartOperationDto.VariantId;
 
             _logger.LogInformation("DecreaseGuestAmount endpoint called - VariantId: {VariantId}", variantId);
+            _logger.LogDebug("Guest {GuestId} attempting decrease the amount of itme: {variantId}", guestId, variantId);
 
-            try
+            var result = await _cartService.DecreaseGuestAmount(guestId, variantId);
+
+            if (result is not null && result.IsSuccess)
             {
-                _logger.LogDebug("Guest {GuestId} attempting decrease the amount of itme: {variantId}", guestId, variantId);
-
-                var result = await _cartService.DecreaseGuestAmount(guestId, variantId);
-
-                if (!result.IsSuccess)
-                {
-                    _logger.LogWarning("Failed to decrease the amount for guestId {GuestId}: {Message}", guestId, result.Message);
-                    return BadRequest(result.Message);
-                }
-
                 _logger.LogInformation("Successfully decreased the amount for guestId {GuestId}", guestId);
                 return Ok(result);
             }
-            catch (Exception ex)
+
+            _logger.LogWarning("Failed to decrease the amount for guestId {GuestId}: {Message}", guestId, result?.Message ?? "");
+
+            var errorResponse = new ApiErrorResponse
             {
-                _logger.LogError(ex, "Exception in DecreaseGuestAmount endpoint");
-                return BadRequest(new
-                {
-                    Message = ex.Message,
-                });
-            }
+                IsSuccess = false,
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = result?.Message ?? "Failed to decrease the amount.",
+                Path = "api/Carts/DecreaseGuestAmount",
+                Method = HttpMethods.Put,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return BadRequest(errorResponse);
         }
 
         [HttpDelete]
@@ -356,32 +372,30 @@ namespace API.Controllers
         public async Task<IActionResult> RemoveGuestItem(string guestId, int variantId)
         {
             _logger.LogInformation("RemoveGuestItem endpoint called - VariantId: {VariantId}", variantId);
+            _logger.LogDebug("Guest {GuestId} attempting remove the itme: {variantId}", guestId, variantId);
 
-            try
+            var result = await _cartService.RemoveGuestItem(guestId, variantId);
+
+            if (result is not null && result.IsSuccess)
             {
-                _logger.LogDebug("Guest {GuestId} attempting remove the itme: {variantId}", guestId, variantId);
-
-                var result = await _cartService.RemoveGuestItem(guestId, variantId);
-
-                if (!result.IsSuccess)
-                {
-                    _logger.LogWarning("Failed to remove the item for guestId {GuestId}: {Message}", guestId, result.Message);
-                    return BadRequest(result.Message);
-                }
-
                 _logger.LogInformation("Successfully remove the item for guestId {GuestId}", guestId);
                 return Ok(result);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception in RemoveGuestItem endpoint");
-                return BadRequest(new
-                {
-                    Message = ex.Message,
-                });
-            }
-        }
 
+            _logger.LogWarning("Failed to remove the item for guestId {GuestId}: {Message}", guestId, result?.Message ?? "");
+
+            var errorResponse = new ApiErrorResponse
+            {
+                IsSuccess = false,
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = result?.Message ?? "Failed to remove the item.",
+                Path = "api/Carts/RemoveGuestItem/{guestId}/{variantId}",
+                Method = HttpMethods.Delete,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return BadRequest(errorResponse);
+        }
 
         [HttpPost]
         [Authorize]
@@ -392,30 +406,30 @@ namespace API.Controllers
 
             _logger.LogInformation("Merge endpoint called");
 
-            try
+            int userId = int.Parse(GetUserId());
+            _logger.LogDebug("Merge the cart of user: {0}", userId);
+
+            var result = await _cartService.Merge(userId, guestId);
+
+            if (result is not null && result.IsSuccess)
             {
-                int userId = int.Parse(GetUserId());
-                _logger.LogDebug("Merge the cart of user: {0}", userId);
-
-                var result = await _cartService.Merge(userId, guestId);
-
-                if (!result.IsSuccess)
-                {
-                    _logger.LogWarning("Failed to Merge {GuestId} and {UserId}: {Message}", guestId, userId, result.Message);
-                    return BadRequest(result.Message);
-                }
-
                 _logger.LogInformation("Successfully merging the cart for {UserId}", userId);
                 return Ok(result);
             }
-            catch (Exception ex)
+
+            _logger.LogWarning("Failed to Merge {GuestId} and {UserId}: {Message}", guestId, userId, result?.Message ?? "");
+
+            var errorResponse = new ApiErrorResponse
             {
-                _logger.LogError(ex, "Exception in Merge endpoint");
-                return BadRequest(new
-                {
-                    Message = ex.Message,
-                });
-            }
+                IsSuccess = false,
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = result?.Message ?? "Failed to Merge.",
+                Path = "api/Carts/Merge",
+                Method = HttpMethods.Post,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return BadRequest(errorResponse);
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Application.DTOs
 {
-    public class OrderDto
+    public class OrderHistoryDto
     {
         public string OrderNumber { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;

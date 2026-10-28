@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Core.Interfaces;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Core.Entities
 {
@@ -10,6 +12,9 @@ namespace Core.Entities
         public int SizeId { get; set; }
         public int Quantity { get; set; }
         public int Reserved { get; set; }
+
+        [Timestamp]
+        public byte[] RowVersion { get; set; } = null!;
 
         public Product Product { get; set; } = null!;
         public Color Color { get; set; } = null!;

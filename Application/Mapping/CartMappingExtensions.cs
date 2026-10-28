@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Core.Entities;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,12 +9,9 @@ namespace Application.Mapping
 {
     public static class CartMappingExtensions
     {
-        public static CartDto ToDto(this BaseCart cart)
+        public static CartDto ToDto(this BaseCart cart, string baseUrl)
         {
-            if (cart is null)
-            {
-                throw new ArgumentNullException(nameof(cart));
-            }
+            ArgumentNullException.ThrowIfNull(cart);
 
             var productName = cart.Variant?.Product?.Translations?.FirstOrDefault()?.Name ?? string.Empty;
             var productDescription = cart.Variant?.Product?.Translations?.FirstOrDefault()?.Description ?? string.Empty;
@@ -32,7 +30,7 @@ namespace Application.Mapping
                 Name = productName,
                 Description = productDescription,
                 Price = productPrice,
-                imagesDtos = cart.Variant?.Images?.FirstOrDefault()?.ToDto() ?? new VariantImagesDto(),
+                imagesDtos = cart.Variant?.Images?.FirstOrDefault()?.ToDto(baseUrl) ?? new ImagesDto(),
                 Color = colorName,
                 HexCode = hexCode,
                 Size = sizeName,
@@ -43,14 +41,11 @@ namespace Application.Mapping
             return dto;
         }
 
-        public static List<CartDto> ToDtoList(this IEnumerable<BaseCart> carts)
+        public static List<CartDto> ToDtoList(this IEnumerable<BaseCart> carts, string baseUrl)
         {
-            if (carts == null)
-            {
-                throw new ArgumentNullException(nameof(carts));
-            }
+            ArgumentNullException.ThrowIfNull(carts);
 
-            return carts.Select(ToDto).ToList();
+            return carts.Select(c => c.ToDto(baseUrl)).ToList();
         }
     }
 }

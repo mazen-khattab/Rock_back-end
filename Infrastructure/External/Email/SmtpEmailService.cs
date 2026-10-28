@@ -73,7 +73,7 @@ namespace Infrastructure.External.Email
             }
             catch (Exception ex)
             {
-                _logger.LogInformation($"Error sending email: {ex.Message}");
+                _logger.LogWarning($"Error sending email: {ex.Message}");
                 throw;
             }
         }

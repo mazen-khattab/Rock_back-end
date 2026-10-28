@@ -1,4 +1,5 @@
-﻿using Core.ExceptionsTypes;
+﻿using Application.Responses;
+using Core.ExceptionsTypes;
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -35,6 +36,7 @@ namespace API.Middleware
 
         private Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
+            _logger.LogError(exception, "An unhandled exception occurred: {Message}", exception.Message);
             context.Response.ContentType = "application/json";
 
             var (statusCode, message) = exception switch
@@ -47,16 +49,16 @@ namespace API.Middleware
 
             context.Response.StatusCode = (int)statusCode;
 
-            var errorResponse = new
+            var errorResponse = new ApiErrorResponse
             {
+                IsSuccess = false,
                 StatusCode = (int)statusCode,
                 Message = message,
-                Path = context.Request.Path.Value,
+                Path = context.Request.Path.Value ?? string.Empty,
                 Method = context.Request.Method,
                 TraceId = context.TraceIdentifier,
                 Details = _env.IsDevelopment() ? exception.StackTrace : null,
                 InnerException = _env.IsDevelopment() ? exception.InnerException?.Message : null
-
             };
 
             var options = new JsonSerializerOptions
@@ -65,7 +67,7 @@ namespace API.Middleware
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
 
-            var errorJson = JsonSerializer.Serialize(errorResponse);
+            var errorJson = JsonSerializer.Serialize(errorResponse, options);
 
             return context.Response.WriteAsync(errorJson);
         }

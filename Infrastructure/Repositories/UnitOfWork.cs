@@ -1,5 +1,6 @@
 ﻿using Core.Interfaces;
 using Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
@@ -79,5 +80,7 @@ namespace Infrastructure.Repositories
 
             GC.SuppressFinalize(this);
         }
+
+        public EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class => _context.Entry(entity);
     }
 }

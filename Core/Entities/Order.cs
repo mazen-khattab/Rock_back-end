@@ -5,7 +5,7 @@ using Core.Enums;
 
 namespace Core.Entities
 {
-    public class Order : BaseEntity, ISoftDelete
+    public class Order : BaseEntity, ISoftDelete, IAuditableEntity
     {
         public int UserId { get; set; }
         public string Number { get; set; } = string.Empty;
@@ -15,7 +15,7 @@ namespace Core.Entities
         public string City { get; set; } = string.Empty;
         public OrderStatus Status { get; set; }
         public bool IsDeleted { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
 
         public User User { get; set; } = null!;
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();

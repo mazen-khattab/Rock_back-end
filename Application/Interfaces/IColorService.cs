@@ -10,8 +10,8 @@ namespace Application.Interfaces
 {
     public interface IColorService : IServices<Color>
     {
-        Task<ApiResponse<(IEnumerable<Color> Items, int TotalCount)>> GetAll(int langId);
-        Task<ApiResponse<Color>> GetById(int categoryId, int langId);
-        Task<ApiResponse<IEnumerable<Color>>> Lookup(int langId);
+        Task<ApiResponse<(IEnumerable<ColorDto> Items, int TotalCount)>> GetAll(string langCode);
+        Task<ApiResponse<ColorDetailsDto>> GetById(int colorId, string langCode);
+        Task<ApiResponse<IEnumerable<ColorLookupDto>>> Lookup(string langCode);
     }
 }

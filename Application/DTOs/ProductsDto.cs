@@ -5,8 +5,8 @@ using System.Text;
 
 namespace Application.DTOs
 {
-    public class AllProductsDto : ProductDto
+    public class ProductsDto : BaseProductDto
     {
-        public List<AllProductsVariantsDto> Variants { get; set; } = new();
+        public List<VariantsDto> Variants { get; set; } = new();
     }
 }

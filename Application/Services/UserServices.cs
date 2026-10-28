@@ -1,7 +1,9 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
+using Application.Mapping;
 using Application.Responses;
 using Core.Entities;
+using Core.Enum;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +27,7 @@ namespace Application.Services
             _logger = logger;
         }
 
-        public async Task<ApiResponse<User>> GetUserProfile(string userId)
+        public async Task<ApiResponse<UserProfileDto>> GetUserProfile(string userId)
         {
             _logger.LogInformation("Fetching profile for user ID: {UserId}", userId);
             var user = await _userManager.FindByIdAsync(userId);
@@ -37,20 +39,23 @@ namespace Application.Services
                 return new()
                 {
                     IsSuccess = false,
+                    ErrorType = ErrorType.NotFound,
                     Message = "User not found"
                 };
             }
 
             _logger.LogInformation("Profile retrieved successfully for userId: {userId}", userId);
+
+            var userProfileDto = user.ToDto() ?? new();
             return new()
             {
                 IsSuccess = true,
                 Message = "Profile retrieved successfully",
-                Data = user
+                Data = userProfileDto
             };
         }
 
-        public async Task<ApiResponse<User>> UpdateUserProfile(UserProfileDto dto, string userId)
+        public async Task<ApiResponse<UserProfileDto>> UpdateUserProfile(UserProfileDto dto, string userId)
         {
             _logger.LogInformation("Updating profile for User: {userId}", userId);
             var user = await _userManager.FindByIdAsync(userId);
@@ -62,16 +67,12 @@ namespace Application.Services
                 return new()
                 {
                     IsSuccess = false,
+                    ErrorType = ErrorType.NotFound,
                     Message = "User not found"
                 };
             }
 
-            user.Fname = dto.FirstName;
-            user.Lname = dto.LastName;
-            user.PhoneNumber = dto.Phone;
-            user.Governorate = dto.Governorate;
-            user.City = dto.City;
-            user.FullAddress = dto.FullAddress;
+            user.FromDto(dto);
 
             var result = await _userManager.UpdateAsync(user);
 
@@ -81,16 +82,19 @@ namespace Application.Services
                 return new() 
                 { 
                     IsSuccess = false, 
+                    ErrorType = ErrorType.ValidationError,
                     Message = "Update failed" 
                 };
             }
 
             _logger.LogInformation("Profile updated successfully for userId: {userId}", userId);
+
+            var userProfileDto = user.ToDto() ?? new();
             return new() 
             { 
                 IsSuccess = true, 
                 Message = "Profile updated successfully", 
-                Data = user 
+                Data = userProfileDto
             };
         }
 
@@ -105,6 +109,7 @@ namespace Application.Services
                 return new()
                 {
                     IsSuccess = false,
+                    ErrorType = ErrorType.ValidationError,
                     Message = "New password and confirmation do not match"
                 };
             }
@@ -116,6 +121,7 @@ namespace Application.Services
                 return new()
                 {
                     IsSuccess = false,
+                    ErrorType = ErrorType.ValidationError,
                     Message = "New password is identical to the old password."
                 };
             }
@@ -129,6 +135,7 @@ namespace Application.Services
                 return new()
                 {
                     IsSuccess = false,
+                    ErrorType = ErrorType.NotFound,
                     Message = "User not found"
                 };
             }
@@ -150,6 +157,7 @@ namespace Application.Services
                 return new()
                 {
                     IsSuccess = false,
+                    ErrorType = ErrorType.ValidationError,
                     Message = errorMessage
                 };
             }

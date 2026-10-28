@@ -1,7 +1,11 @@
-﻿using Application.Interfaces;
+﻿using Application.DTOs;
+using Application.Interfaces;
+using Application.Mapping;
 using Application.Responses;
 using Core.Entities;
+using Core.Enum;
 using Core.Interfaces;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -14,100 +18,68 @@ namespace Application.Services
     {
         public SizeService(IUnitOfWork unitOfWork, IRepo<Size> repo, ILogger<SizeService> logger) : base(unitOfWork, repo, logger) { }
 
-        public async Task<ApiResponse<(IEnumerable<Size> Items, int TotalCount)>> GetAll()
+        public async Task<ApiResponse<(IEnumerable<SizeDto> Items, int TotalCount)>> GetAll()
         {
             _logger.LogInformation("GetAll sizes requested");
 
-            try
-            {
-                var (items, totalCount) = await GetPagedAsync();
+            var (items, totalCount) = await GetPagedAsync();
+            _logger.LogInformation("Successfully retrieved {Count} sizes", items.Count());
 
-                _logger.LogInformation("Successfully retrieved {Count} sizes", items.Count());
-                return new()
-                {
-                    IsSuccess = true,
-                    Data = (items, totalCount),
-                    Message = "Sizes retrieved successfully."
-                };
-            }
-            catch (Exception ex)
+            var sizesDto = items.ToDtoList() ?? new();
+            return new()
             {
-                _logger.LogError(ex, "An error occurred while fetching all sizes");
+                IsSuccess = true,
+                Data = (sizesDto, totalCount),
+                Message = "Sizes retrieved successfully."
+            };
 
-                return new()
-                {
-                    IsSuccess = false,
-                    Message = "An error occurred while retrieving sizes."
-                };
-            }
         }
 
-        public async Task<ApiResponse<Size>> GetById(int sizeId)
+        public async Task<ApiResponse<SizeDetailsDto>> GetById(int sizeId)
         {
             _logger.LogInformation("GetSizeById requested for SizeID: {SizeId}", sizeId);
 
-            try
+            var size = await GetByIdAsync(sizeId);
+
+            if (size == null)
             {
-                var size = await GetByIdAsync(sizeId);
+                _logger.LogWarning("Size with ID: {SizeId} was not found.", sizeId);
 
-                if (size == null)
-                {
-                    _logger.LogWarning("Size with ID: {SizeId} was not found.", sizeId);
-
-                    return new()
-                    {
-                        IsSuccess = false,
-                        Message = "Size not found."
-                    };
-                }
-
-                _logger.LogInformation("Successfully retrieved size ID: {SizeId}", sizeId);
-
-                return new()
-                {
-                    IsSuccess = true,
-                    Data = size,
-                    Message = "Size retrieved successfully.",
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while getting size {SizeId}", sizeId);
                 return new()
                 {
                     IsSuccess = false,
-                    Message = "An error occurred while retrieving the size."
+                    ErrorType = ErrorType.NotFound,
+                    Message = "Size not found."
                 };
             }
+
+            _logger.LogInformation("Successfully retrieved size ID: {SizeId}", sizeId);
+
+            var sizeDetailsDto = size.ToDetailsDto() ?? new();
+
+            return new()
+            {
+                IsSuccess = true,
+                Data = sizeDetailsDto,
+                Message = "Size retrieved successfully.",
+            };
         }
 
-        public async Task<ApiResponse<IEnumerable<Size>>> Lookup()
+        public async Task<ApiResponse<IEnumerable<SizeLookupDto>>> Lookup()
         {
             _logger.LogInformation("Size lookup requested");
 
-            try
+            var lookup = await GetAllAsync();
+            _logger.LogInformation("Successfully retrieved size lookups");
+
+            var lookupDto = lookup.ToListLookupDto();
+
+            return new()
             {
-                var lookup = await GetAllAsync();
-
-                _logger.LogInformation("Successfully retrieved size lookups");
-
-                return new()
-                {
-                    IsSuccess = true,
-                    Message = "Size lookups retrieved successfully.",
-                    Data = lookup,
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while fetching size lookups");
-
-                return new()
-                {
-                    IsSuccess = false,
-                    Message = "An error occurred while retrieving size lookups."
-                };
-            }
+                IsSuccess = true,
+                Message = "Size lookups retrieved successfully.",
+                Data = lookupDto,
+            };
         }
     }
 }

@@ -10,26 +10,26 @@ namespace Application.Interfaces
     public interface IMapper
     {
         // Map from Entity List to Dto List
-        List<AllProductsDto> MapToDtoList(IEnumerable<Product> products, int languageId);
-        List<AllProductsVariantsDto> MapToDtoList(IEnumerable<Variant> variants, int languageId);
-        List<ProductDetailsVariantDto> MapToDtoList(int languageId, IEnumerable<Variant> variants);
-        List<VariantImagesDto> MapToDtoList(IEnumerable<VariantImage> variantImages);
+        List<ProductsDto> MapToDtoList(IEnumerable<Product> products, int languageId);
+        List<VariantsDto> MapToDtoList(IEnumerable<Variant> variants, int languageId);
+        List<VariantDetailsDto> MapToDtoList(int languageId, IEnumerable<Variant> variants);
+        List<ImagesDto> MapToDtoList(IEnumerable<VariantImage> variantImages);
         List<CartDto> MapToDtoList(IEnumerable<BaseCart> carts);
-        List<OrderDto> MapToDtoList(IEnumerable<Order> orders, int languageId);
+        List<OrderHistoryDto> MapToDtoList(IEnumerable<Order> orders, int languageId);
         List<OrderDetailsDto> MapToDtoList(IEnumerable<OrderDetail> ordersDetails, int languageId);
-        List<AllProductsAdminDto> MapToDtoAdminList(IEnumerable<Product> products, int languageId);
+        List<ProductsAdminDto> MapToDtoAdminList(IEnumerable<Product> products, int languageId);
 
 
         // Map from Entity to Dto
-        AllProductsDto MapToDto(Product product, int languageId);
-        AllProductsVariantsDto MapToDto(Variant variant, int languageId);
+        ProductsDto MapToDto(Product product, int languageId);
+        VariantsDto MapToDto(Variant variant, int languageId);
         ProductDetailsDto MapToDto(int languageId, Product product);
-        ProductDetailsVariantDto MapToDto(int languageId, Variant variant);
-        VariantImagesDto MapToDto(VariantImage variantImage);
+        VariantDetailsDto MapToDto(int languageId, Variant variant);
+        ImagesDto MapToDto(VariantImage variantImage);
         CartDto MapToDto(BaseCart cart);
-        OrderDto MapToDto(Order order, int languageId);
+        OrderHistoryDto MapToDto(Order order, int languageId);
         OrderDetailsDto MapToDto(OrderDetail orderDetail, int languageId);
         UserProfileDto MapToDto(User user);
-        AllProductsAdminDto MapToAdminDto(Product product, int languageId);
+        ProductsAdminDto MapToAdminDto(Product product, int languageId);
     }
 }
