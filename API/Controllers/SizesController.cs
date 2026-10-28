@@ -30,25 +30,37 @@ namespace API.Controllers
 
             var result = await _sizeService.GetAll();
 
-            if (!result.IsSuccess)
+            if (result is not null && result.IsSuccess)
             {
-                _logger.LogWarning("Failed to retrieve sizes in controller. Message: {Msg}", result.Message);
-                return BadRequest(new { error = result.Message });
+                var (items, totalCount) = result.Data;
+
+                _logger.LogInformation("Successfully mapped and returning {Count} sizes", totalCount);
+
+                return Ok(new
+                {
+                    items,
+                    totalCount,
+                    pageNumber = 1,
+                    pageSize = 12,
+                    totalPages = (int)Math.Ceiling(totalCount / (double)12)
+                });
             }
 
-            var (items, totalCount) = result.Data;
-            var sizeDtos = items.ToDtoList();
+            _logger.LogWarning("Failed to retrieve sizes in controller. Message: {Msg}", result?.Message ?? "");
 
-            _logger.LogInformation("Successfully mapped and returning {Count} sizes", totalCount);
-
-            return Ok(new
+            var errorResponse = new ApiErrorResponse
             {
-                items = sizeDtos,
-                totalCount = totalCount,
-                pageNumber = 1,
-                pageSize = 12,
-                totalPages = (int)Math.Ceiling(totalCount / (double)12)
-            });
+                IsSuccess = false,
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = result?.Message ?? "Failed to retrieve sizes.",
+                Path = "api/Sizes",
+                Method = HttpMethods.Get,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            _logger.LogWarning("Returning error response with StatusCode: {StatusCode}, Message: {Message}", errorResponse.StatusCode, errorResponse.Message);
+
+            return BadRequest(errorResponse);
         }
 
         [HttpGet("{id}")]
@@ -58,21 +70,33 @@ namespace API.Controllers
 
             var result = await _sizeService.GetById(id);
 
-            if (!result.IsSuccess)
+            if (result is not null && result.IsSuccess)
             {
-                _logger.LogWarning("Size with ID: {Id} not found or failed to retrieve. Message: {Msg}", id, result.Message);
-                return BadRequest(new { error = result.Message });
+                var sizeDto = result.Data;
+
+                _logger.LogInformation("Successfully mapped and returning size ID: {Id}", id);
+
+                return Ok(new ApiResponse<SizeDetailsDto>
+                {
+                    IsSuccess = true,
+                    Data = sizeDto,
+                });
             }
 
-            var sizeDto = result.Data?.ToDetailsDto() ?? new();
-
-            _logger.LogInformation("Successfully mapped and returning size ID: {Id}", id);
-
-            return Ok(new ApiResponse<SizeDetailsDto>
+            _logger.LogWarning("Size with ID: {Id} not found or failed to retrieve. Message: {Msg}", id, result?.Message ?? "");
+            var errorResponse = new ApiErrorResponse
             {
-                IsSuccess = true,
-                Data = sizeDto,
-            });
+                IsSuccess = false,
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = result?.Message ?? "Failed to retrieve size with id.",
+                Path = "api/Sizes/{id}",
+                Method = HttpMethods.Get,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            _logger.LogWarning("Returning error response with StatusCode: {StatusCode}, Message: {Message}", errorResponse.StatusCode, errorResponse.Message);
+
+            return BadRequest(errorResponse);
         }
 
         [HttpGet("lookup")]
@@ -82,21 +106,33 @@ namespace API.Controllers
 
             var result = await _sizeService.Lookup();
 
-            if (!result.IsSuccess)
+            if (result is not null && result.IsSuccess)
             {
-                _logger.LogWarning("Failed to retrieve size lookups. Message: {Msg}", result.Message);
-                return BadRequest(new { error = result.Message });
+                var lookupDto = result.Data;
+
+                _logger.LogInformation("Successfully returning size lookups for dropdown.");
+
+                return Ok(new ApiResponse<IEnumerable<SizeLookupDto>>
+                {
+                    IsSuccess = true,
+                    Data = lookupDto,
+                });
             }
 
-            var lookupDto = result.Data?.ToListLookupDto() ?? new List<SizeLookupDto>();
-
-            _logger.LogInformation("Successfully returning size lookups for dropdown.");
-
-            return Ok(new ApiResponse<IEnumerable<SizeLookupDto>>
+            _logger.LogWarning("Failed to retrieve size lookups. Message: {Msg}", result?.Message ?? "");
+            var errorResponse = new ApiErrorResponse
             {
-                IsSuccess = true,
-                Data = lookupDto,
-            });
+                IsSuccess = false,
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = result?.Message ?? "Failed to retrieve size lookups.",
+                Path = "api/Sizes/lookup",
+                Method = HttpMethods.Get,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            _logger.LogWarning("Returning error response with StatusCode: {StatusCode}, Message: {Message}", errorResponse.StatusCode, errorResponse.Message);
+
+            return BadRequest(errorResponse);
         }
     }
 }

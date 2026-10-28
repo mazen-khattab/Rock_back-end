@@ -10,10 +10,7 @@ namespace Application.Mapping
     {
         public static SizeDto ToDto(this Size size)
         {
-            if (size == null)
-            {
-                throw new ArgumentNullException(nameof(Size));
-            }
+            ArgumentNullException.ThrowIfNull(size);
 
             return new SizeDto()
             {
@@ -26,20 +23,14 @@ namespace Application.Mapping
 
         public static List<SizeDto> ToDtoList(this IEnumerable<Size> sizes)
         {
-            if (sizes is null)
-            {
-                throw new ArgumentNullException(nameof(Color));
-            }
+            ArgumentNullException.ThrowIfNull(sizes);
 
             return sizes.Select(s => s.ToDto()).ToList();
         }
 
         public static SizeDetailsDto ToDetailsDto(this Size size)
         {
-            if (size == null)
-            {
-                throw new ArgumentNullException(nameof(Size));
-            }
+            ArgumentNullException.ThrowIfNull(size);
 
             return new SizeDetailsDto()
             {
@@ -51,10 +42,7 @@ namespace Application.Mapping
 
         public static SizeLookupDto ToLookupDto(this Size lookup)
         {
-            if (lookup == null)
-            {
-                throw new ArgumentNullException(nameof(Color));
-            }
+            ArgumentNullException.ThrowIfNull(lookup);
 
             return new SizeLookupDto
             {
@@ -65,10 +53,7 @@ namespace Application.Mapping
 
         public static List<SizeLookupDto> ToListLookupDto(this IEnumerable<Size> lookup)
         {
-            if (lookup == null)
-            {
-                throw new ArgumentNullException(nameof(Color));
-            }
+            ArgumentNullException.ThrowIfNull(lookup);
             return lookup.Select(s => s.ToLookupDto()).ToList();
         }
     }

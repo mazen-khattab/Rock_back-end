@@ -2,6 +2,7 @@
 using Application.Interfaces;
 using Application.Responses;
 using Core.Entities;
+using Core.Enum;
 using Core.Enums;
 using Core.Interfaces;
 using Core.Settings;
@@ -21,23 +22,18 @@ namespace Application.Services
 {
     public class AuthService : IAuthService
     {
-        readonly IServices<RefreshToken> _refreshToken;
-        readonly ILogger<AuthService> _logger;
-        readonly UserManager<User> _userManager;
-        readonly SignInManager<User> _signInManager;
-        readonly RoleManager<Role> _roleManager;
-        readonly IConfiguration _config;
-        readonly JwtSettings _jwtSettings;
+        private readonly IServices<RefreshToken> _refreshToken;
+        private readonly ILogger<AuthService> _logger;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+        private readonly JwtSettings _jwtSettings;
 
-        public AuthService(IServices<RefreshToken> refreshToken, ILogger<AuthService> logger, UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<Role> roleManager,
-           IConfiguration config, IOptions<JwtSettings> jwtSettings)
+        public AuthService(IServices<RefreshToken> refreshToken, ILogger<AuthService> logger, UserManager<User> userManager, SignInManager<User> signInManager, IOptions<JwtSettings> jwtSettings)
         {
             _refreshToken = refreshToken;
             _logger = logger;
             _userManager = userManager;
             _signInManager = signInManager;
-            _roleManager = roleManager;
-            _config = config;
             _jwtSettings = jwtSettings.Value;
         }
 
@@ -236,14 +232,11 @@ namespace Application.Services
                 .Replace("/", "_")
                 .Replace("=", "");
 
-            RefreshToken? DbToken = _refreshToken.Query(rt => rt.UserId == user.Id)
-                .OrderByDescending(rt => rt.Id)
-                .FirstOrDefault();
-
-            if (DbToken is not null)
-            {
-                DbToken.ExpDate = DateTime.Now;
-            }
+            await _refreshToken.Query(rt => rt.UserId == user.Id)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(rt => rt.ExpDate, DateTime.UtcNow)
+                    .SetProperty(rt => rt.UpdatedAt, DateTime.Now)
+                );
 
             RefreshToken refreshToken = new()
             {
@@ -252,9 +245,9 @@ namespace Application.Services
                 UserId = user.Id
             };
 
-            _logger.LogInformation("Refresh token id {0} for user: {1}", DbToken?.Id.ToString(), user.Id.ToString());
+            //_logger.LogInformation("Refresh token id {0} for user: {1}", DbToken?.Id.ToString(), user.Id.ToString());
 
-            await _refreshToken.AddAsync(refreshToken);
+            _refreshToken.Add(refreshToken);
             int isSaved = await _refreshToken.SaveChangesAsync();
             _logger.LogInformation("[CreateRefreshToken] saved value: {value}", isSaved);
 
@@ -300,6 +293,48 @@ namespace Application.Services
                 Message = "succeeded",
                 AccessToken = await CreateAccessToken(DBToken.User),
                 RefreshToken = await CreateRefreshToken(DBToken.User)
+            };
+        }
+
+        /// <summary>
+        /// Retrieves the user information and assigned roles from the database based on the provided user ID.
+        /// </summary>
+        /// <param name="userId">The unique identifier of the user.</param>
+        /// <returns>An <see cref="ApiResponse{UserInfoDto}"/> containing the user's details if found; otherwise, a failed response.</returns>
+        public async Task<ApiResponse<UserInfoDto>> GetUserInfoAsync(string userId)
+        {
+            _logger.LogInformation("[AuthService] Fetching details from database for UserId: {UserId}", userId);
+
+            User? user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                _logger.LogWarning("[AuthService] User with ID {UserId} was not found in the database.", userId);
+                return new()
+                {
+                    IsSuccess = false,
+                    ErrorType = ErrorType.NotFound,
+                    Message = "User not found"
+                };
+            }
+
+            _logger.LogInformation("[AuthService] User {UserId} found successfully. Fetching roles...", userId);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            _logger.LogInformation("[AuthService] Successfully retrieved user info and roles for UserId: {UserId}", userId);
+
+            var userInfo = new UserInfoDto
+            {
+                UserId = user.Id,
+                UserName = user.Fname[0..1].ToUpper() + user.Lname[0..1].ToUpper(),
+                Role = roles.ToList()
+            };
+
+            return new ApiResponse<UserInfoDto>
+            {
+                IsSuccess = true,
+                Message = "User retrieved successfully",
+                Data = userInfo
             };
         }
 
@@ -372,7 +407,7 @@ namespace Application.Services
         /// <returns>Result of the logout operation.</returns>
         public async Task<AuthServiceResponse> Logout(string refreshToken)
         {
-            _logger.LogInformation("Logout attempt for refresh token");
+            _logger.LogInformation("[AuthService] Logout attempt for refresh token");
 
             if (string.IsNullOrWhiteSpace(refreshToken))
             {
@@ -383,24 +418,31 @@ namespace Application.Services
                 };
             }
 
-            var dbToken = await _refreshToken.GetAsync(t => t.Token == refreshToken, true, rf => rf.User);
+            await _refreshToken.Query(rt => rt.Token == refreshToken)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(rt => rt.ExpDate, DateTime.UtcNow)
+                    .SetProperty(rt => rt.UpdatedAt, DateTime.Now)
+                );
+            //var dbToken = await _refreshToken.GetAsync(t => t.Token == refreshToken, true, rf => rf.User);
 
-            if (dbToken == null)
-            {
-                _logger.LogWarning("Refresh token not found during logout");
-                return new AuthServiceResponse
-                {
-                    IsSuccess = false,
-                    Message = "Refresh token not found."
-                };
-            }
+            //if (dbToken == null)
+            //{
+            //    _logger.LogWarning("[AuthService] Refresh token not found during logout");
 
-            // Mark token expired instead of deleting — works with available Services API
-            dbToken.ExpDate = DateTime.Now;
-            int isSaved = await _refreshToken.SaveChangesAsync();
-            _logger.LogInformation("[Logout] saved value: {value}", isSaved);
+            //    return new AuthServiceResponse
+            //    {
+            //        IsSuccess = false,
+            //        Message = "Refresh token not found."
+            //    };
+            //}
 
-            _logger.LogInformation("Refresh token revoked for user: {UserId}", dbToken.UserId);
+            //// Mark token expired instead of deleting — works with available Services API
+            //dbToken.ExpDate = DateTime.Now;
+
+            //int isSaved = await _refreshToken.SaveChangesAsync();
+            //_logger.LogInformation("[AuthService] [Logout] saved value: {value}", isSaved);
+
+            //_logger.LogInformation("[AuthService] Refresh token revoked securely for user: {UserId}", dbToken.UserId);
 
             return new AuthServiceResponse
             {

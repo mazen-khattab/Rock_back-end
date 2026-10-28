@@ -29,7 +29,7 @@ namespace Application.Services
         /// <returns>An <see cref="IQueryable{T}"/> representing the query.</returns>
         public IQueryable<T> Query(Expression<Func<T, bool>>? filter = null, bool tracked = true, bool ignoreQueryFilters = false, params Expression<Func<T, object>>[] includes)
         {
-            _logger.LogDebug("Querying {Entity} | Tracked={Tracked} | IgnoreFilters={IgnoreFilters} | Includes={IncludeCount}",
+            _logger.LogInformation("Querying {Entity} | Tracked={Tracked} | IgnoreFilters={IgnoreFilters} | Includes={IncludeCount}",
                 typeof(T).Name, tracked, ignoreQueryFilters, includes?.Length ?? 0);
 
             return _repo.Query(filter, tracked, ignoreQueryFilters, includes);
@@ -125,34 +125,44 @@ namespace Application.Services
         /// Adds a new entity to the data store.
         /// </summary>
         /// <param name="entity">The entity to add.</param>
-        public async Task AddAsync(T entity)
+        public void Add(T entity)
         {
             _logger.LogInformation("Adding new {Entity}", typeof(T).Name);
-
-            await _repo.AddAsync(entity);
+            _repo.Add(entity);
         }
 
         /// <summary>
         /// Updates an existing entity in the data store.
         /// </summary>
         /// <param name="entity">The entity to update.</param>
-        public async Task UpdateAsync(T entity)
+        public void Update(T entity)
         {
             _logger.LogInformation("Updating {Entity}", typeof(T).Name);
+            _repo.Update(entity);
+        }
 
-            await _repo.UpdateAsync(entity);
+        /// <summary>
+        /// Marks a collection of entities for deletion.
+        /// </summary>
+        /// <param name="entities">The collection of entities to delete.</param>
+        public void DeleteRange(IEnumerable<T> entities)
+        {
+            if (entities != null && entities.Any())
+            {
+                _logger.LogInformation("Deleting a range of {Entity}", typeof(T).Name);
+                _repo.DeleteRange(entities);
+            }
         }
 
         /// <summary>
         /// Deletes an entity using soft delete if supported,
-        /// otherwise performs a physical delete.
+        /// otherwise performs a physical delete upon saving changes.
         /// </summary>
         /// <param name="entity">The entity to delete.</param>
-        public async Task DeleteAsync(T entity)
+        public void Delete(T entity)
         {
-            _logger.LogWarning("Soft deleting {Entity}", typeof(T).Name);
-
-            await _repo.DeleteAsync(entity);
+            _logger.LogInformation("Soft deleting {Entity}", typeof(T).Name);
+            _repo.Delete(entity);
         }
 
         /// <summary>
@@ -162,7 +172,7 @@ namespace Application.Services
         /// <param name="entity">The entity to delete.</param>
         public async Task HardDeleteAsync(T entity)
         {
-            _logger.LogWarning("Hard deleting {Entity}", typeof(T).Name);
+            _logger.LogInformation("Hard deleting {Entity}", typeof(T).Name);
 
             await _repo.HardDeleteAsync(entity);
         }

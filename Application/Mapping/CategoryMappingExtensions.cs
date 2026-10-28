@@ -8,16 +8,13 @@ namespace Application.Mapping
 {
     public static class CategoryMappingExtensions
     {
-        public static categoryDto ToDto(this Category category, int languageId)
+        public static CategoryDto ToDto(this Category category, int languageId)
         {
-            if (category == null)
-            {
-                throw new ArgumentNullException(nameof(Category));
-            }
+            ArgumentNullException.ThrowIfNull(category);
 
             string trasnlationName = category.Translations?.FirstOrDefault(t => t.LanguageId == languageId)?.Name ?? string.Empty;
 
-            return new categoryDto()
+            return new CategoryDto()
             {
                 Id = category.Id,
                 IsActive = category.IsActive,
@@ -26,16 +23,13 @@ namespace Application.Mapping
 
         }
 
-        public static categoryDetailsDto ToDetailsDto(this Category category, int languageId)
+        public static CategoryDetailsDto ToDetailsDto(this Category category, int languageId)
         {
-            if (category == null)
-            {
-                throw new ArgumentNullException(nameof(Category));
-            }
+            ArgumentNullException.ThrowIfNull(category);
 
             string trasnlationName = category.Translations?.FirstOrDefault(t => t.LanguageId == languageId)?.Name ?? string.Empty;
 
-            return new categoryDetailsDto()
+            return new CategoryDetailsDto()
             {
                 IsActive = category.IsActive,
                 Name = trasnlationName,
@@ -43,22 +37,16 @@ namespace Application.Mapping
 
         }
 
-        public static List<categoryDto> ToDtoList(this IEnumerable<Category> categories, int languageId)
+        public static List<CategoryDto> ToDtoList(this IEnumerable<Category> categories, int languageId)
         {
-            if (categories == null)
-            {
-                throw new ArgumentNullException(nameof(Category));
-            }
+            ArgumentNullException.ThrowIfNull(categories);
 
             return categories.Select(c => c.ToDto(languageId)).ToList();
         }
 
         public static CategoryLookupDto ToLookupDto(this Category lookup, int languageId)
         {
-            if (lookup == null)
-            {
-                throw new ArgumentNullException(nameof(Category));
-            }
+            ArgumentNullException.ThrowIfNull(lookup);
 
             return new CategoryLookupDto
             {
@@ -69,10 +57,7 @@ namespace Application.Mapping
 
         public static List<CategoryLookupDto> ToListLookupDto(this IEnumerable<Category> lookup, int languageId)
         {
-            if (lookup == null)
-            {
-                throw new ArgumentNullException(nameof(Category));
-            }
+            ArgumentNullException.ThrowIfNull(lookup);
 
             return lookup.Select(c => c.ToLookupDto(languageId)).ToList();
         }

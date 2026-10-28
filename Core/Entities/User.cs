@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Core.Entities
 {
-    public class User : IdentityUser<int>, ISoftDelete
+    public class User : IdentityUser<int>, ISoftDelete, IAuditableEntity
     {
         public string Fname { get; set; } = string.Empty;
         public string Lname { get; set; } = string.Empty;
@@ -13,6 +13,9 @@ namespace Core.Entities
         public string City { get; set; } = string.Empty;
         public string FullAddress { get; set; } = string.Empty;
         public bool IsDeleted { get; set; }
+        public DateTime? DeletedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
 
         //public ICollection<UserAddress> Addresses { get; set; } = new List<UserAddress>();

@@ -8,14 +8,11 @@ namespace Application.Mapping
 {
     public static class ColorMappingExtensions
     {
-        public static colorDto ToDto(this Color color, int languageId)
+        public static ColorDto ToDto(this Color color, int languageId)
         {
-            if (color is null)
-            {
-                throw new ArgumentNullException(nameof(Color));
-            }
+            ArgumentNullException.ThrowIfNull(color);
 
-            return new colorDto
+            return new ColorDto
             {
                 Id = color.Id,
                 Name = color.Translations?.FirstOrDefault(t => t.LanguageId == languageId)?.Name ?? string.Empty,
@@ -24,14 +21,11 @@ namespace Application.Mapping
             };
         }
 
-        public static colorDetailsDto ToDetailsDto(this Color color, int languageId)
+        public static ColorDetailsDto ToDetailsDto(this Color color, int languageId)
         {
-            if (color is null)
-            {
-                throw new ArgumentNullException(nameof(Color));
-            }
+            ArgumentNullException.ThrowIfNull(color);
 
-            return new colorDetailsDto
+            return new ColorDetailsDto
             {
                 Name = color.Translations?.FirstOrDefault(t => t.LanguageId == languageId)?.Name ?? string.Empty,
                 HexCode = color.HexCode,
@@ -39,22 +33,16 @@ namespace Application.Mapping
             };
         }
 
-        public static List<colorDto> ToDtoList(this IEnumerable<Color> colors, int languageId)
+        public static List<ColorDto> ToDtoList(this IEnumerable<Color> colors, int languageId)
         {
-            if (colors is null)
-            {
-                throw new ArgumentNullException(nameof(Color));
-            }
+            ArgumentNullException.ThrowIfNull(colors);
 
-            return colors.Select(c => c.ToDto(languageId)).ToList();
+            return [.. colors.Select(c => c.ToDto(languageId))];
         }
 
         public static ColorLookupDto ToLookupDto(this Color lookup, int languageId)
         {
-            if (lookup == null)
-            {
-                throw new ArgumentNullException(nameof(Color));
-            }
+            ArgumentNullException.ThrowIfNull(lookup);
 
             return new ColorLookupDto
             {
@@ -66,12 +54,9 @@ namespace Application.Mapping
 
         public static List<ColorLookupDto> ToListLookupDto(this IEnumerable<Color> lookup, int languageId)
         {
-            if (lookup == null)
-            {
-                throw new ArgumentNullException(nameof(Color));
-            }
+            ArgumentNullException.ThrowIfNull(lookup);
 
-            return lookup.Select(c => c.ToLookupDto(languageId)).ToList();
+            return [.. lookup.Select(c => c.ToLookupDto(languageId))];
         }
     }
 }

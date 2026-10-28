@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Application.DTOs
 {
-    public class VariantImagesDto
+    public class ImagesDto
     {
         public string ImageUrl { get; set; } = null!;
         public string AltText { get; set; } = null!;

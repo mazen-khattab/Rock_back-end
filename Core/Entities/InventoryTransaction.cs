@@ -10,7 +10,6 @@ namespace Core.Entities
         public int VariantId { get; set; }
         public int Quantity { get; set; }
         public InventoryTransactionType TransactionType { get; set; }
-        public DateTime CreatedAt { get; set; }
 
         public Order? Order { get; set; }
         public User User { get; set; } = null!;

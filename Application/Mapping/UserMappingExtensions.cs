@@ -10,10 +10,7 @@ namespace Application.Mapping
     {
         public static UserProfileDto ToDto(this User user)
         {
-            if (user is null)
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
+            ArgumentNullException.ThrowIfNull(user);
 
             return new UserProfileDto()
             {
@@ -25,6 +22,22 @@ namespace Application.Mapping
                 City = user.City ?? string.Empty,
                 FullAddress = user.FullAddress ?? string.Empty
             };
+        }
+
+        public static User FromDto(this User user, UserProfileDto dto)
+        {
+            ArgumentNullException.ThrowIfNull(user);
+            ArgumentNullException.ThrowIfNull(dto);
+
+            user.Fname = dto.FirstName;
+            user.Lname = dto.LastName;
+            user.PhoneNumber = dto.Phone;
+            user.Governorate = dto.Governorate;
+            user.City = dto.City;
+            user.FullAddress = dto.FullAddress;
+            user.Email = dto.Email;
+
+            return user;
         }
     }
 }

@@ -15,6 +15,7 @@ namespace Application.Interfaces
         Task<string> CreateRefreshToken(User user);
         Task<AuthServiceResponse> AssignRoleAsync(UpdatePermissionDto updatePermissionDto);
         Task<AuthServiceResponse> ValidateRefreshToken(string token);
+        Task<ApiResponse<UserInfoDto>> GetUserInfoAsync(string userId);
         Task<AuthServiceResponse> Logout(string refreshToken);
     }
 }

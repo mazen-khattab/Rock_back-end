@@ -73,26 +73,32 @@ namespace Core.Interfaces
         /// Adds a new entity to the data store.
         /// The change is not persisted until SaveChangesAsync is called.
         /// </summary>
-        Task AddAsync(T entity);
+        void Add(T entity);
 
 
         /// <summary>
         /// Updates an existing entity in the data store.
         /// The change is not persisted until SaveChangesAsync is called.
         /// </summary>
-        Task UpdateAsync(T entity);
+        void Update(T entity);
 
 
         /// <summary>
         /// Soft-delete if the entity implements ISoftDelete, otherwise physically delete.
         /// </summary>
-        Task DeleteAsync(T entity);
+        void Delete(T entity);
 
+        /// <summary>
+        /// Marks a collection of entities for deletion.
+        /// </summary>
+        /// <param name="entities">The collection of entities to delete.</param>
+        void DeleteRange(IEnumerable<T> entities);
 
         /// <summary>
         /// Physically delete regardless of ISoftDelete.
         /// </summary>
         Task HardDeleteAsync(T entity);
+
         Task<int> SaveChangesAsync();
     }
 }

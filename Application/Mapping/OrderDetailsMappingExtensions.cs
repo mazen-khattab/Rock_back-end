@@ -8,12 +8,9 @@ namespace Application.Mapping
 {
     public static class OrderDetailsMappingExtensions
     {
-        public static OrderDetailsDto ToDetailsDto(this OrderDetail orderDetail, int languageId)
+        public static OrderDetailsDto ToDetailsDto(this OrderDetail orderDetail, int languageId, string baseUrl)
         {
-            if (orderDetail is null)
-            {
-                throw new ArgumentNullException(nameof(orderDetail));
-            }
+            ArgumentNullException.ThrowIfNull(orderDetail);
 
             var product = orderDetail.Variant?.Product;
             var productTranslation = orderDetail.Variant?.Product?.Translations?.FirstOrDefault(t => t.LanguageId == languageId);
@@ -32,18 +29,15 @@ namespace Application.Mapping
                 HexCode = color?.HexCode ?? string.Empty,
                 SizeName = size?.Name ?? string.Empty,
                 Quantity = orderDetail.Quantity,
-                Image = image ?? string.Empty
+                Image = $"{baseUrl}/{image}" ?? string.Empty
             };
         }
 
-        public static List<OrderDetailsDto> ToDetailsDtoList(this IEnumerable<OrderDetail> ordersDetails, int languageId)
+        public static List<OrderDetailsDto> ToDetailsDtoList(this IEnumerable<OrderDetail> ordersDetails, int languageId, string baseUrl)
         {
-            if (ordersDetails == null)
-            {
-                throw new ArgumentNullException(nameof(ordersDetails));
-            }
+            ArgumentNullException.ThrowIfNull(ordersDetails);
 
-            return ordersDetails.Select(od => od.ToDetailsDto(languageId)).ToList();
+            return ordersDetails.Select(od => od.ToDetailsDto(languageId, baseUrl)).ToList();
         }
     }
 }

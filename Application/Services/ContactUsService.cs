@@ -21,31 +21,17 @@ namespace Application.Services
         public ApiResponse<string> ContactUs(ContactUsDto contactUs)
         {
             _logger.LogInformation("Contact us from: {userName}, Phone: {Phone}", contactUs.Name, contactUs.Phone);
-
-            try
+            BackgroundJob.Enqueue<IEmailService>(e => e.SendAdminEmailAsync(new EmailInfoDto
             {
-                BackgroundJob.Enqueue<IEmailService>(e => e.SendAdminEmailAsync(new EmailInfoDto
-                {
-                    FName = contactUs.Name,
-                    Phone = contactUs.Phone
-                }, false));
+                FName = contactUs.Name,
+                Phone = contactUs.Phone
+            }, false));
 
-                return new ApiResponse<string>
-                {
-                    IsSuccess = true,
-                    Message = "Message sent successfully"
-                };
-            }
-            catch (Exception ex)
+            return new ApiResponse<string>
             {
-                _logger.LogError(ex, "Failed to enqueue contact us job for: {Phone}", contactUs.Phone);
-
-                return new ApiResponse<string>
-                {
-                    IsSuccess = false,
-                    Message = "Failed to process your request. Please try again later.",
-                };
-            }
+                IsSuccess = true,
+                Message = "Message sent successfully"
+            };
         }
     }
 }

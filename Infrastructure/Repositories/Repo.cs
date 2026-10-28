@@ -2,11 +2,7 @@
 using Core.Interfaces;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Infrastructure.Repositories
 {
@@ -125,29 +121,30 @@ namespace Infrastructure.Repositories
         public async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate) => await _dbSet.AnyAsync(predicate);
 
         /// <summary>
-        /// Adds a new entity to the data store and immediately persists the change.
+        /// Adds a new entity to the Change Tracker.
+        /// Note: This does NOT immediately persist the change. You must call SaveChangesAsync() on the UnitOfWork.
         /// </summary>
-        public Task AddAsync(T entity) => _dbSet.AddAsync(entity).AsTask();
+        public void Add(T entity) => _dbSet.Add(entity);
 
         /// <summary>
-        /// Updates an existing entity in the data store and immediately persists the change.
+        /// Updates an existing entity in the Change Tracker.
+        /// Note: This does NOT immediately persist the change. You must call SaveChangesAsync() on the UnitOfWork.
         /// </summary>
-        public Task UpdateAsync(T entity)
-        {
-            _dbSet.Update(entity);
-            return Task.CompletedTask;
-        }
+        public void Update(T entity) => _dbSet.Update(entity);
 
         /// <summary>
-        /// Soft-delete behavior is handled by AppDbContext.SaveChanges/SaveChangesAsync:
-        /// when the entry State == Deleted and entity implements ISoftDelete, AppDbContext converts it to IsDeleted = true + Modified.
-        /// So here we mark the entity for deletion and save; the context will convert to soft-delete as appropriate.
+        /// Marks a collection of entities for deletion in the Change Tracker.
+        /// Note: This does NOT immediately persist the change.
         /// </summary>
-        public Task DeleteAsync(T entity)
-        {
-            _dbSet.Remove(entity);
-            return Task.CompletedTask;
-        }
+        public void DeleteRange(IEnumerable<T> entities) => _dbSet.RemoveRange(entities);
+
+        /// <summary>
+        /// Soft-delete behavior is handled by AppDbContext.SaveChangesAsync:
+        /// When the entry State == Deleted and the entity implements ISoftDelete, 
+        /// AppDbContext converts it to IsDeleted = true + Modified.
+        /// So here we simply mark the entity for deletion; the context will convert it to a soft-delete upon saving.
+        /// </summary>
+        public void Delete(T entity) => _dbSet.Remove(entity);
 
         /// <summary>
         /// Physically deletes the row from the database using ExecuteDeleteAsync to bypass the change tracker path.

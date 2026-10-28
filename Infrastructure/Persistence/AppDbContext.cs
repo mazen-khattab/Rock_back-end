@@ -57,24 +57,44 @@ namespace Infrastructure.Persistence
 
         public override int SaveChanges()
         {
-            foreach (var entry in ChangeTracker.Entries().Where(e => e.State == EntityState.Deleted && e.Entity is ISoftDelete))
-            {
-                var entity = (ISoftDelete)entry.Entity;
-                entity.IsDeleted = true;
-                entry.State = EntityState.Modified;
-            }
+            EntitySoftDelete();
+            UpdateAuditEntries();
             return base.SaveChanges();
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
+            EntitySoftDelete();
+            UpdateAuditEntries();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void EntitySoftDelete()
+        {
             foreach (var entry in ChangeTracker.Entries().Where(e => e.State == EntityState.Deleted && e.Entity is ISoftDelete))
             {
                 var entity = (ISoftDelete)entry.Entity;
                 entity.IsDeleted = true;
+                entity.DeletedAt = DateTime.Now;
                 entry.State = EntityState.Modified;
             }
-            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void UpdateAuditEntries()
+        {
+            var entries = ChangeTracker.Entries<IAuditableEntity>();
+
+            foreach (var entry in entries)
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.CreatedAt = DateTime.Now;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    entry.Entity.UpdatedAt = DateTime.Now;
+                }
+            }
         }
     }
 }

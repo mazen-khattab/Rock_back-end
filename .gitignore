@@ -1,0 +1,16 @@
+## Visual Studio
+.vs/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+## Build Results
+[Bb]in/
+[Oo]bj/
+**/bin/
+**/obj/
+
+## Logs
+*.log
+**/my-logs/

@@ -28,17 +28,27 @@ namespace API.Controllers
             _logger.LogInformation("Calling contactUs endpoint from: {userName}", contactUs.Name);
 
             var response = _contactUsService.ContactUs(contactUs);
-            
-            if (!response.IsSuccess)
-            {
-                _logger.LogWarning("ContactUs service returned failure for {Phone}: {Message}",
-                    contactUs.Phone, response.Message);
 
-                return BadRequest(response);
+            if (response is not null && response.IsSuccess)
+            {
+                _logger.LogInformation("ContactUs request processed successfully for {Phone}", contactUs.Phone);
+                return Ok(response);
             }
 
-            _logger.LogInformation("ContactUs request processed successfully for {Phone}", contactUs.Phone);
-            return Ok(response);
+            _logger.LogWarning("ContactUs service returned failure for {Phone}: {Message}",
+                contactUs.Phone, response?.Message ?? "");
+
+            var errorResponse = new ApiErrorResponse
+            {
+                IsSuccess = false,
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = response?.Message ?? "Failed to send email message.",
+                Path = "api/ContactUs",
+                Method = HttpMethods.Post,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return BadRequest(errorResponse);
         }
     }
 }

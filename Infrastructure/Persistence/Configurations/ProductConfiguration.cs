@@ -20,6 +20,10 @@ namespace Infrastructure.Persistence.Configurations
                 .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
+            builder.Property(p => p.IsActive)
+                .HasColumnOrder(4)
+                .HasDefaultValue(true);
+
             builder.Property(p => p.CreatedAt).IsRequired();
 
             builder.HasOne(p => p.Category)

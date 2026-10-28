@@ -18,8 +18,8 @@ namespace Application.Interfaces
         /// <returns>
         /// An <see cref="ApiResponse{T}"/> containing a collection of CartDto representing the user's cart items.
         /// </returns>
-        Task<ApiResponse<IEnumerable<UserCart>>> GetUserCart(int userId, int langId);
-
+        Task<ApiResponse<IEnumerable<CartDto>>> GetUserCart(int userId, string langCode, string baseUrl);
+        Task<IEnumerable<UserCart>> FetchCartWithDetailsAsync(int userId, int langId);
 
         /// <summary>
         /// Adds a product variant to the authenticated user's cart.
@@ -79,7 +79,7 @@ namespace Application.Interfaces
         /// <returns>
         /// An <see cref="ApiResponse{T}"/> containing a collection of CartDto representing the guest's cart items.
         /// </returns>
-        Task<ApiResponse<IEnumerable<GuestCart>>> GetGuestCart(string guestId, int langId);
+        Task<ApiResponse<IEnumerable<CartDto>>> GetGuestCart(string guestId, string langCode, string baseUrl);
 
 
         /// <summary>
@@ -140,7 +140,7 @@ namespace Application.Interfaces
         /// <returns>
         /// An <see cref="ApiResponse{T}"/> containing the updated collection of CartDto for the authenticated user.
         /// </returns>
-        Task<ApiResponse<IEnumerable<UserCart>>> Merge(int userId, string guestId, bool ignoreTransaction = false);
+        Task<ApiResponse<bool>> Merge(int userId, string guestId, bool ignoreTransaction = false);
 
     }
 }
