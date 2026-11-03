@@ -1,17 +1,17 @@
-﻿using Core.Interfaces;
+using Application.DTOs;
+using Application.Interfaces;
 using Core.Settings;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
-using Org.BouncyCastle.Asn1.X9;
+using QuestPDF.Infrastructure;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using MailKit.Net.Smtp;
-using Application.DTOs;
-using Application.Interfaces;
-using Microsoft.Extensions.Logging;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace Infrastructure.External.Email
 {
@@ -19,63 +19,115 @@ namespace Infrastructure.External.Email
     {
         private readonly SmtpSettings _smtpSettings;
         private readonly ILogger<SmtpEmailService> _logger;
-        const string Email = "mazenkhtab123@gmail.com";
+
         public SmtpEmailService(IOptions<SmtpSettings> smtpSettings, ILogger<SmtpEmailService> logger)
         {
             _smtpSettings = smtpSettings.Value;
             _logger = logger;
         }
 
-
         public async Task SendAdminEmailAsync(EmailInfoDto job, bool isOrder = true)
         {
-            _logger.LogInformation("Sending an email to mazenkhtab11@gmail.com from: {sender}", Email);
+            var adminEmail = !string.IsNullOrWhiteSpace(_smtpSettings.AdminEmail)
+                ? _smtpSettings.AdminEmail
+                : "mazenkhtab11@gmail.com";
 
-            MimeMessage email = new();
-            email.From.Add(new MailboxAddress("Rock Store", Email));
-            email.To.Add(MailboxAddress.Parse("mazenkhtab11@gmail.com"));
+            string subject;
+            var builder = new BodyBuilder();
 
             if (isOrder)
             {
-                email.Subject = $"New order from {job.FName} {job.LName}";
-
-                var builder = new BodyBuilder
-                {
-                    HtmlBody = "<p>Attached is the customer order in PDF format.</p>"
-                };
+                subject = $"New order from {job.FName} {job.LName}".Trim();
+                builder.HtmlBody = "<p>Attached is the customer order in PDF format.</p>";
+                builder.TextBody = "Attached is the customer order in PDF format.";
 
                 byte[] pdfBytes = CreateOrderPdf(job);
-
-                builder.Attachments.Add("OrderDetails.pdf", pdfBytes, ContentType.Parse("application/pdf"));
-                email.Body = builder.ToMessageBody();
+                builder.Attachments.Add("OrderDetails.pdf", pdfBytes, new ContentType("application", "pdf"));
             }
             else
-            {   
-                email.Subject = "New contact Submission from Website";
-
-                email.Body = new TextPart("html")
-                {
-                    Text = $@"<h2>User Contact Info</h2>
-                        <p><strong>Name:</strong> {job.FName}</p>
-                        <p><strong>Phone Number:</strong> {job.Phone}</p>"
-                };
+            {
+                subject = "New contact Submission from Website";
+                builder.HtmlBody = $@"<h2>User Contact Info</h2>
+                    <p><strong>Name:</strong> {job.FName}</p>
+                    <p><strong>Phone Number:</strong> {job.Phone}</p>";
+                builder.TextBody = $"User Contact Info\nName: {job.FName}\nPhone Number: {job.Phone}";
             }
+
+            await SendEmailInternalAsync(adminEmail, subject, builder);
+        }
+
+        public async Task SendEmailAsync(string toEmail, string subject, string htmlBody, byte[]? attachmentBytes = null, string? attachmentFileName = null)
+        {
+            var builder = new BodyBuilder
+            {
+                HtmlBody = htmlBody
+            };
+
+            if (attachmentBytes != null && !string.IsNullOrWhiteSpace(attachmentFileName))
+            {
+                builder.Attachments.Add(attachmentFileName, attachmentBytes);
+            }
+
+            await SendEmailInternalAsync(toEmail, subject, builder);
+        }
+
+        private async Task SendEmailInternalAsync(string toEmail, string subject, BodyBuilder bodyBuilder)
+        {
+            var senderEmail = !string.IsNullOrWhiteSpace(_smtpSettings.SenderEmail)
+                ? _smtpSettings.SenderEmail
+                : (!string.IsNullOrWhiteSpace(_smtpSettings.SmtpLogin) ? _smtpSettings.SmtpLogin : "mazenkhtab123@gmail.com");
+
+            var senderDisplayName = !string.IsNullOrWhiteSpace(_smtpSettings.SenderDisplayName)
+                ? _smtpSettings.SenderDisplayName
+                : "Rock Store";
+
+            _logger.LogInformation("Sending email to {Recipient} from {Sender} with subject '{Subject}'", toEmail, senderEmail, subject);
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(senderDisplayName, senderEmail));
+            message.To.Add(MailboxAddress.Parse(toEmail));
+            message.Subject = subject;
+            message.Body = bodyBuilder.ToMessageBody();
 
             try
             {
                 using var smtp = new SmtpClient();
-                await smtp.ConnectAsync(_smtpSettings.SmtpServer, _smtpSettings.SmtpPort, false);
-                await smtp.AuthenticateAsync(_smtpSettings.SmtpLogin, _smtpSettings.SmtpPassword);
-                await smtp.SendAsync(email);
+
+                var secureSocketOptions = ResolveSecureSocketOptions();
+
+                await smtp.ConnectAsync(_smtpSettings.SmtpServer, _smtpSettings.SmtpPort, secureSocketOptions);
+
+                if (!string.IsNullOrWhiteSpace(_smtpSettings.SmtpLogin) && !string.IsNullOrWhiteSpace(_smtpSettings.SmtpPassword))
+                {
+                    await smtp.AuthenticateAsync(_smtpSettings.SmtpLogin, _smtpSettings.SmtpPassword);
+                }
+
+                await smtp.SendAsync(message);
                 await smtp.DisconnectAsync(true);
 
-                _logger.LogInformation("Email sent successfully.");
+                _logger.LogInformation("Email sent successfully to {Recipient}.", toEmail);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Error sending email: {ex.Message}");
+                _logger.LogError(ex, "Failed to send email to {Recipient}: {Message}", toEmail, ex.Message);
                 throw;
             }
+        }
+
+        private SecureSocketOptions ResolveSecureSocketOptions()
+        {
+            if (!_smtpSettings.EnableSsl)
+            {
+                return SecureSocketOptions.None;
+            }
+
+            return _smtpSettings.SmtpPort switch
+            {
+                465 => SecureSocketOptions.SslOnConnect,
+                587 => SecureSocketOptions.StartTls,
+                25 => SecureSocketOptions.StartTlsWhenAvailable,
+                _ => SecureSocketOptions.Auto
+            };
         }
 
         private byte[] CreateOrderPdf(EmailInfoDto job)
@@ -86,12 +138,15 @@ namespace Infrastructure.External.Email
                 {
                     page.Margin(50);
                     page.Size(PageSizes.A4);
-                    page.Background(Colors.White);
+                    page.PageColor(Colors.White);
 
                     page.Header().Row(row =>
                     {
-                        var image = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\Images", "Rock_logo.jpg");
-                        row.ConstantItem(70).Image(image);
+                        var image = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", "Rock_logo.jpg");
+                        if (File.Exists(image))
+                        {
+                            row.ConstantItem(70).Image(image);
+                        }
 
                         row.RelativeItem().AlignCenter().Text("Rock Store - Order Summary")
                             .FontColor(Colors.Green.Darken4)
@@ -103,14 +158,11 @@ namespace Infrastructure.External.Email
                     {
                         col.Spacing(8);
 
-                        // usre info section
+                        // user info section
                         col.Item().PaddingTop(40).Text("User Info:")
                              .FontSize(16)
                              .Bold()
                              .FontColor(Colors.Green.Darken4);
-                        //col.Item().Text($"Name: {job.FName} {job.LName}").FontSize(14);
-                        //col.Item().Text($"Email: {job.Email}").FontSize(14);
-                        //col.Item().Text($"Phone: {job.Phone}").FontSize(14);
 
                         // name
                         col.Item().Row(row =>
@@ -140,10 +192,6 @@ namespace Infrastructure.External.Email
                              .FontSize(16)
                              .Bold()
                              .FontColor(Colors.Green.Darken4);
-                        //col.Item().Text($"Governorate: {job.Governorate}").FontSize(14);
-                        //col.Item().Text($"City: {job.City}").FontSize(14);
-                        //col.Item().Text($"Full Address: {job.Address}").FontSize(14);
-                        //col.Item().Text($"Notes: {job.Notes}").FontSize(14);
 
                         // Governorate
                         col.Item().Row(row =>
@@ -188,7 +236,6 @@ namespace Infrastructure.External.Email
                                 row.AutoItem().Text($"{item.Name}  -  {item.Size}  -  {item.Color}").FontSize(14);
                                 row.ConstantItem(30).Text("").FontSize(14);
                                 row.ConstantItem(30).Text("*").FontSize(14);
-                                //row.ConstantItem(30).Text("").FontSize(14);
                                 row.AutoItem().Text($"{item.Price}   = ").FontSize(14);
                                 row.RelativeItem().AlignRight().Text($"{item.Price * item.Quantity}").FontSize(14);
                             });
