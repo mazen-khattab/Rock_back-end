@@ -8,6 +8,7 @@ using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using QuestPDF.Infrastructure;
 using System.Text;
@@ -39,6 +40,7 @@ builder.Services.AddInfrastructureServices(connectionString);
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+builder.Services.Configure<AdmincredentialsSettings>(builder.Configuration.GetSection("AdmincredentialsSettings"));
 #endregion
 
 #region Authentication
@@ -126,8 +128,9 @@ try
     {
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
+        var adminSettings = scope.ServiceProvider.GetRequiredService<IOptions<AdmincredentialsSettings>>();
 
-        await Seeding.SeedingAsync(roleManager, userManager);
+        await Seeding.SeedingAsync(roleManager, userManager, adminSettings);
     }
 }
 catch (Exception ex)
