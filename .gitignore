@@ -14,3 +14,25 @@
 ## Logs
 *.log
 **/my-logs/
+
+## wwwroot images and uploads
+**/wwwroot/Images/
+**/wwwroot/Uploads/
+**/wwwroot/**/*.jpg
+**/wwwroot/**/*.jpeg
+**/wwwroot/**/*.png
+**/wwwroot/**/*.gif
+**/wwwroot/**/*.webp
+**/wwwroot/**/*.svg
+**/wwwroot/**/*.ico
+**/wwwroot/**/*.bmp
+**/wwwroot/**/*.tiff
+**/wwwroot/*.jpg
+**/wwwroot/*.jpeg
+**/wwwroot/*.png
+**/wwwroot/*.gif
+**/wwwroot/*.webp
+**/wwwroot/*.svg
+**/wwwroot/*.ico
+**/wwwroot/*.bmp
+**/wwwroot/*.tiff
