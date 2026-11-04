@@ -8,6 +8,7 @@ namespace Application.Interfaces
 {
     public interface ICategoryService : IServices<Category>
     {
+        Task<ApiResponse<CategoryDetailsAdminDto>> CreateCategory(CategoryDetailsAdminDto dto);
         Task<ApiResponse<(IEnumerable<CategoryDto> Items, int TotalCount)>> GetAll(string langCode);
         Task<(IEnumerable<Category>, int)> FetchAllCategoriesAsync(int langId);
         Task<ApiResponse<CategoryDetailsDto>> GetById(int categoryId, string langCode);

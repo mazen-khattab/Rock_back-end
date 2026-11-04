@@ -1,5 +1,7 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
+using API.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Application.Mapping;
 using Application.Responses;
 using Core.Entities;
@@ -21,6 +23,34 @@ namespace API.Controllers
         {
             _sizeService = sizeService;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Creates a size with its display order and active state.
+        /// </summary>
+        [HttpPost("admin/create")]
+        [Authorize(Roles = "Admin,Owner")]
+        public async Task<IActionResult> CreateSize([FromBody] SizeDetailsDto dto)
+        {
+            _logger.LogInformation("HTTP POST request received for api/sizes/admin/create");
+            var result = await _sizeService.CreateSize(dto);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("Returning created size ID: {SizeId}", result.Data?.Id);
+                return CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result);
+            }
+
+            int statusCode = result.ErrorType.ToHttpStatusCode();
+            _logger.LogWarning("Size creation failed with StatusCode: {StatusCode}, Message: {Message}", statusCode, result.Message);
+            return StatusCode(statusCode, new ApiErrorResponse
+            {
+                StatusCode = statusCode,
+                Message = result.Message,
+                Path = Request.Path.Value ?? "api/Sizes/admin/create",
+                Method = HttpMethods.Post,
+                TraceId = HttpContext.TraceIdentifier
+            });
         }
 
         [HttpGet]

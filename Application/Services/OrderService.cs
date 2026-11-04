@@ -48,6 +48,104 @@ namespace Application.Services
             _authService = authService;
         }
 
+        #region Admin Orders
+        public async Task<ApiResponse<(IEnumerable<OrdersAdminDto> Items, int TotalCount)>> GetAllAdminOrders(OrderFilterDto filterDto)
+        {
+            _logger.LogInformation("GetAllAdminOrders requested with PageNumber: {PageNumber}, PageSize: {PageSize}",
+                filterDto.PageNumber, filterDto.PageSize);
+
+            long skip = ((long)filterDto.PageNumber - 1) * filterDto.PageSize;
+            if (filterDto.PageNumber < 1 || filterDto.PageSize < 1 || filterDto.PageSize > 100 || skip > int.MaxValue)
+            {
+                _logger.LogWarning("Invalid pagination requested for admin orders");
+                return new()
+                {
+                    IsSuccess = false,
+                    ErrorType = ErrorType.ValidationError,
+                    Message = "Page number must be positive and page size must be between 1 and 100. The requested page must be within the supported range."
+                };
+            }
+
+            // Keep orders visible when their customer is soft deleted, while excluding deleted orders.
+            var query = Query(o => !o.IsDeleted, tracked: false, ignoreQueryFilters: true);
+            int totalCount = await query.CountAsync();
+
+            // The ID breaks ties so paging stays consistent for orders created at the same time.
+            var orders = await query.Include(o => o.User)
+                .OrderByDescending(o => o.CreatedAt).ThenByDescending(o => o.Id)
+                .Skip((int)skip).Take(filterDto.PageSize)
+                .ToListAsync();
+
+            _logger.LogInformation("Retrieved {Count} admin orders out of {TotalCount}", orders.Count, totalCount);
+            return new()
+            {
+                IsSuccess = true,
+                Data = (orders.Select(o => o.ToAdminDto()).ToList(), totalCount),
+                Message = "Orders retrieved successfully for admin."
+            };
+        }
+
+        public async Task<ApiResponse<OrderDetailsAdminDto>> GetAdminOrderById(int orderId, string langCode, string baseUrl)
+        {
+            _logger.LogInformation("GetAdminOrderById requested for OrderId: {OrderId}, LangCode: {LangCode}", orderId, langCode);
+
+            int langId = await _langServices.Query(l => l.Code == langCode, tracked: false)
+                .Select(l => l.Id).FirstOrDefaultAsync();
+            if (langId == 0)
+            {
+                _logger.LogWarning("Language code {LangCode} not found. Falling back to Arabic for admin order details", langCode);
+                langId = await _langServices.Query(l => l.Code == "ar", tracked: false)
+                    .Select(l => l.Id).FirstOrDefaultAsync();
+            }
+
+            var order = await FetchAdminOrderWithDetailsAsync(orderId, langId);
+            if (order == null)
+            {
+                _logger.LogWarning("Admin order with ID: {OrderId} was not found", orderId);
+                return new()
+                {
+                    IsSuccess = false,
+                    ErrorType = ErrorType.NotFound,
+                    Message = "Order not found."
+                };
+            }
+
+            _logger.LogInformation("Retrieved admin order ID: {OrderId} with {Count} items", orderId, order.OrderDetails.Count);
+            return new()
+            {
+                IsSuccess = true,
+                Data = order.ToAdminDetailsDto(langId, baseUrl),
+                Message = "Order details retrieved successfully for admin."
+            };
+        }
+
+        private async Task<Order?> FetchAdminOrderWithDetailsAsync(int orderId, int langId)
+        {
+            _logger.LogDebug("Fetching admin order ID: {OrderId} with customer, variants and translations", orderId);
+
+            // Include historical products and customers even after soft deletion, but never a deleted order.
+            return await Query(o => o.Id == orderId && !o.IsDeleted, tracked: false, ignoreQueryFilters: true)
+                .Include(o => o.User)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Variant)
+                        .ThenInclude(v => v.Product)
+                            .ThenInclude(p => p.Translations.Where(t => t.LanguageId == langId))
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Variant)
+                        .ThenInclude(v => v.Color)
+                            .ThenInclude(c => c.Translations.Where(t => t.LanguageId == langId))
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Variant)
+                        .ThenInclude(v => v.Size)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Variant)
+                        .ThenInclude(v => v.Images)
+                            .ThenInclude(i => i.MediaAsset)
+                .AsSplitQuery()
+                .FirstOrDefaultAsync();
+        }
+        #endregion
+
         public async Task<IEnumerable<Order>> FetchUserOrdersWithDetailsAsync(int userId, int langId)
         {
             _logger.LogInformation("Fetching order entities with details from DB for user {UserId} with Language ID {LangId}", userId, langId);

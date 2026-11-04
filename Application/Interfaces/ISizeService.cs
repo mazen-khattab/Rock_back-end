@@ -8,6 +8,7 @@ namespace Application.Interfaces
 {
     public interface ISizeService : IServices<Size>
     {
+        Task<ApiResponse<SizeDto>> CreateSize(SizeDetailsDto dto);
         Task<ApiResponse<(IEnumerable<SizeDto> Items, int TotalCount)>> GetAll();
         Task<ApiResponse<SizeDetailsDto>> GetById(int sizeId);
         Task<ApiResponse<IEnumerable<SizeLookupDto>>> Lookup();

@@ -18,6 +18,32 @@ namespace Application.Services
     {
         public SizeService(IUnitOfWork unitOfWork, IRepo<Size> repo, ILogger<SizeService> logger) : base(unitOfWork, repo, logger) { }
 
+        #region CreateSize Method
+        public async Task<ApiResponse<SizeDto>> CreateSize(SizeDetailsDto dto)
+        {
+            _logger.LogInformation("CreateSize requested with sort order: {SortOrder}", dto.SortOrder);
+
+            // Sizes use a shared name rather than separate language translations.
+            var size = new Size
+            {
+                Name = dto.Name.Trim(),
+                SortOrder = dto.SortOrder,
+                IsActive = dto.IsActive
+            };
+
+            Add(size);
+            await SaveChangesAsync();
+
+            _logger.LogInformation("Size created successfully with ID: {SizeId}", size.Id);
+            return new()
+            {
+                IsSuccess = true,
+                Data = size.ToDto(),
+                Message = "Size created successfully."
+            };
+        }
+        #endregion
+
         public async Task<ApiResponse<(IEnumerable<SizeDto> Items, int TotalCount)>> GetAll()
         {
             _logger.LogInformation("GetAll sizes requested");

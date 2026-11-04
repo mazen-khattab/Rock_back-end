@@ -36,7 +36,7 @@ namespace Application.Mapping
             {
                 Name = size.Name ?? string.Empty,
                 SortOrder = size.SortOrder,
-                IsActive = !size.IsActive
+                IsActive = size.IsActive
             };
         }
 
