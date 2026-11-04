@@ -101,7 +101,8 @@ builder.Services.AddCors(option =>
             policy.WithOrigins(
                     "http://localhost:5173",
                     "http://localhost:5174",
-                    "https://rockstore-weld.vercel.app"
+                    "https://rockstore-weld.vercel.app",
+                    "https://keef-wear.com"
                 )
                 .AllowAnyHeader()
                 .AllowAnyMethod()
@@ -126,37 +127,30 @@ try
 {
     using (var scope = app.Services.CreateScope())
     {
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+        // Create or update database tables before any seeding queries run.
+        await context.Database.MigrateAsync();
+        logger.LogInformation("Database migrations applied successfully");
+
+        await LanguageSeeder.SeedAsync(context, logger);
+
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
         var adminSettings = scope.ServiceProvider.GetRequiredService<IOptions<AdmincredentialsSettings>>();
 
-        await Seeding.SeedingAsync(roleManager, userManager, adminSettings);
+        // Seed roles before the administrator because role assignments depend on them.
+        await RoleSeeder.SeedAsync(roleManager, logger);
+        await AdminUserSeeder.SeedAsync(userManager, adminSettings.Value, logger);
     }
 }
 catch (Exception ex)
 {
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(ex, "An Error Occurs When Applying The Migrations");
+    logger.LogError(ex, "An error occurred while applying database migrations or seeding data");
 }
 #endregion
-
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<AppDbContext>();
-        if (context.Database.GetPendingMigrations().Any())
-        {
-            context.Database.Migrate();
-            Console.WriteLine("Migrations applied successfully!");
-        }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error applying migrations: {ex.Message}");
-    }
-}
 
 // Configure the HTTP request pipeline.
 app.UseMiddleware<ExceptionMiddleware>();

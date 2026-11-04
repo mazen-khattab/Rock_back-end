@@ -38,6 +38,50 @@ namespace Application.Services
             return langId;
         }
 
+        #region CreateCategory Method
+        public async Task<ApiResponse<CategoryDetailsAdminDto>> CreateCategory(CategoryDetailsAdminDto dto)
+        {
+            _logger.LogInformation("CreateCategory requested");
+
+            // Resolve language IDs from the database instead of assuming fixed seed IDs.
+            var arabic = await _langServices.GetAsync(l => l.Code == "ar", tracked: false);
+            var english = await _langServices.GetAsync(l => l.Code == "en", tracked: false);
+
+            if (arabic == null || english == null)
+            {
+                _logger.LogWarning("Cannot create category because Arabic or English language is missing");
+                return new()
+                {
+                    IsSuccess = false,
+                    ErrorType = ErrorType.NotFound,
+                    Message = "Arabic and English languages must be configured before creating a category."
+                };
+            }
+
+            var category = new Category
+            {
+                IsActive = dto.IsActive,
+                Translations = new List<CategoryTranslation>
+                {
+                    new() { LanguageId = arabic.Id, Name = dto.NameAr.Trim() },
+                    new() { LanguageId = english.Id, Name = dto.NameEn.Trim() }
+                }
+            };
+
+            // Save the category and both translations together in one database operation.
+            Add(category);
+            await SaveChangesAsync();
+
+            _logger.LogInformation("Category created successfully with ID: {CategoryId}", category.Id);
+            return new()
+            {
+                IsSuccess = true,
+                Data = category.ToAdminDetailsDto(arabic.Id, english.Id),
+                Message = "Category created successfully."
+            };
+        }
+        #endregion
+
         #region GetAll Method
         public async Task<ApiResponse<(IEnumerable<CategoryDto> Items, int TotalCount)>> GetAll(string langCode)
         {

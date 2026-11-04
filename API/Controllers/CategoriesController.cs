@@ -1,5 +1,7 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
+using API.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Application.Responses;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
@@ -26,6 +28,34 @@ namespace API.Controllers
             _logger.LogInformation("Current language code: {LangCode}", currentLang);
 
             return currentLang;
+        }
+
+        /// <summary>
+        /// Creates a category with Arabic and English translations for the admin panel.
+        /// </summary>
+        [HttpPost("admin/create")]
+        [Authorize(Roles = "Admin,Owner")]
+        public async Task<IActionResult> CreateCategory([FromBody] CategoryDetailsAdminDto dto)
+        {
+            _logger.LogInformation("HTTP POST request received for api/categories/admin/create");
+            var result = await _categoryService.CreateCategory(dto);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("Returning created category ID: {CategoryId}", result.Data?.Id);
+                return CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result);
+            }
+
+            int statusCode = result.ErrorType.ToHttpStatusCode();
+            _logger.LogWarning("Category creation failed with StatusCode: {StatusCode}, Message: {Message}", statusCode, result.Message);
+            return StatusCode(statusCode, new ApiErrorResponse
+            {
+                StatusCode = statusCode,
+                Message = result.Message,
+                Path = Request.Path.Value ?? "api/Categories/admin/create",
+                Method = HttpMethods.Post,
+                TraceId = HttpContext.TraceIdentifier
+            });
         }
 
         [HttpGet]

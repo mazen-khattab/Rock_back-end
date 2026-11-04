@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
+using API.Extensions;
 using Application.Mapping;
 using Application.Responses;
 using Azure;
@@ -31,13 +32,13 @@ namespace API.Controllers
             _jwtSettings = jwtSettings.Value;
         }
 
-        private string GetUserId()
+        private string? GetUserId()
         {
             _logger.LogInformation("Retrieving user ID from claims in 'GetUserId' method");
 
-            return User.FindFirstValue(ClaimTypes.NameIdentifier)
-                ?? throw new UnauthorizedAccessException("Unauthorize user");
+            return User.FindFirstValue(ClaimTypes.NameIdentifier);
         }
+
 
         private string BaseURL()
         {
@@ -77,6 +78,72 @@ namespace API.Controllers
             {
                 _logger.LogError(ex, "Something went wrong while generating the cookies.");
             }
+        }
+
+        /// <summary>
+        /// Lists orders across all customers for the admin panel, newest first.
+        /// </summary>
+        [HttpGet("admin")]
+        [Authorize(Roles = "Admin,Owner")]
+        public async Task<IActionResult> GetAdminOrders([FromQuery] OrderFilterDto filterDto)
+        {
+            _logger.LogInformation("HTTP GET request received for api/orders/admin with PageNumber: {PageNumber}, PageSize: {PageSize}",
+                filterDto.PageNumber, filterDto.PageSize);
+
+            var result = await _orderService.GetAllAdminOrders(filterDto);
+            if (result.IsSuccess)
+            {
+                var (items, totalCount) = result.Data;
+                _logger.LogInformation("Returning {Count} admin orders out of {TotalCount}", items.Count(), totalCount);
+                return Ok(new
+                {
+                    items,
+                    totalCount,
+                    pageNumber = filterDto.PageNumber,
+                    pageSize = filterDto.PageSize,
+                    totalPages = (int)Math.Ceiling(totalCount / (double)filterDto.PageSize)
+                });
+            }
+
+            int statusCode = result.ErrorType.ToHttpStatusCode();
+            _logger.LogWarning("Failed to retrieve admin orders. Message: {Message}", result.Message);
+            return StatusCode(statusCode, new ApiErrorResponse
+            {
+                StatusCode = statusCode,
+                Message = result.Message,
+                Path = Request.Path.Value ?? "api/Orders/admin",
+                Method = HttpMethods.Get,
+                TraceId = HttpContext.TraceIdentifier
+            });
+        }
+
+        /// <summary>
+        /// Returns customer, delivery and purchased item details for one order.
+        /// </summary>
+        [HttpGet("admin/{id:int}")]
+        [Authorize(Roles = "Admin,Owner")]
+        public async Task<IActionResult> GetAdminOrderById(int id)
+        {
+            string langCode = CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
+            _logger.LogInformation("HTTP GET request received for api/orders/admin/{OrderId} with LangCode: {LangCode}", id, langCode);
+
+            var result = await _orderService.GetAdminOrderById(id, langCode, BaseURL());
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("Returning admin order details for ID: {OrderId}", id);
+                return Ok(result);
+            }
+
+            int statusCode = result.ErrorType.ToHttpStatusCode();
+            _logger.LogWarning("Failed to retrieve admin order ID: {OrderId}. Message: {Message}", id, result.Message);
+            return StatusCode(statusCode, new ApiErrorResponse
+            {
+                StatusCode = statusCode,
+                Message = result.Message,
+                Path = Request.Path.Value ?? $"api/Orders/admin/{id}",
+                Method = HttpMethods.Get,
+                TraceId = HttpContext.TraceIdentifier
+            });
         }
 
         [HttpPost]
@@ -139,7 +206,7 @@ namespace API.Controllers
             _logger.LogInformation("OrderHistory endpoint called with langCode: {CurrentLang}", currentLang);
 
             string baseUrl = BaseURL();
-            var userId = int.Parse(GetUserId());
+            var userId = int.Parse(GetUserId()!);
 
             var result = await _orderService.UserOrderHistory(userId, currentLang, baseUrl);
 

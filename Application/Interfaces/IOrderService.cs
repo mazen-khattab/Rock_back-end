@@ -10,6 +10,9 @@ namespace Application.Interfaces
 {
     public interface IOrderService : IServices<Order>
     {
+        Task<ApiResponse<(IEnumerable<OrdersAdminDto> Items, int TotalCount)>> GetAllAdminOrders(OrderFilterDto filterDto);
+        Task<ApiResponse<OrderDetailsAdminDto>> GetAdminOrderById(int orderId, string langCode, string baseUrl);
+
         Task<string> GenerateOrderNumberAsync();
 
         /// <summary>

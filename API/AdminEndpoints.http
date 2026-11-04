@@ -1,0 +1,49 @@
+@API_HostAddress = http://localhost:5213
+@accessToken = replace-with-an-admin-or-owner-access-token
+@orderId = 1
+
+### Create a category with both translations. Returns 201 and a Location header.
+POST {{API_HostAddress}}/api/Categories/admin/create
+Content-Type: application/json
+Cookie: accessToken={{accessToken}}
+
+{
+  "nameAr": "قمصان",
+  "nameEn": "Shirts",
+  "isActive": true
+}
+
+### Create a color. Hex codes must use # followed by six hexadecimal digits.
+POST {{API_HostAddress}}/api/Colors/admin/create
+Content-Type: application/json
+Cookie: accessToken={{accessToken}}
+
+{
+  "nameAr": "أزرق",
+  "nameEn": "Blue",
+  "hexCode": "#0000FF",
+  "isActive": true
+}
+
+### Create a size. Returns its generated ID, name, sort order and active state.
+POST {{API_HostAddress}}/api/Sizes/admin/create
+Content-Type: application/json
+Cookie: accessToken={{accessToken}}
+
+{
+  "name": "XL",
+  "sortOrder": 4,
+  "isActive": true
+}
+
+### Orders across all customers, newest first. Page size defaults to 12; maximum 100.
+### Returns items, totalCount, pageNumber, pageSize and totalPages.
+GET {{API_HostAddress}}/api/Orders/admin?pageNumber=1&pageSize=12
+Cookie: accessToken={{accessToken}}
+
+### Order details use Accept-Language (ar by default, or en).
+### Includes customer contact details, the order's delivery address, and checkout amounts.
+### Missing or deleted orders return 404. Anonymous requests return 401; regular users return 403.
+GET {{API_HostAddress}}/api/Orders/admin/{{orderId}}
+Accept-Language: en
+Cookie: accessToken={{accessToken}}

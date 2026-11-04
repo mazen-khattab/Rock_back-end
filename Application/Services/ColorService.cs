@@ -39,6 +39,51 @@ namespace Application.Services
             return langId;
         }
 
+        #region CreateColor Method
+        public async Task<ApiResponse<ColorDetailsAdminDto>> CreateColor(ColorDetailsAdminDto dto)
+        {
+            _logger.LogInformation("CreateColor requested with hex code: {HexCode}", dto.HexCode);
+
+            // Both translations belong to the same color, as in product creation.
+            var arabic = await _langServices.GetAsync(l => l.Code == "ar", tracked: false);
+            var english = await _langServices.GetAsync(l => l.Code == "en", tracked: false);
+
+            if (arabic == null || english == null)
+            {
+                _logger.LogWarning("Cannot create color because Arabic or English language is missing");
+                return new()
+                {
+                    IsSuccess = false,
+                    ErrorType = ErrorType.NotFound,
+                    Message = "Arabic and English languages must be configured before creating a color."
+                };
+            }
+
+            var color = new Color
+            {
+                HexCode = dto.HexCode.ToUpperInvariant(),
+                IsActive = dto.IsActive,
+                Translations = new List<ColorTranslation>
+                {
+                    new() { LanguageId = arabic.Id, Name = dto.NameAr.Trim() },
+                    new() { LanguageId = english.Id, Name = dto.NameEn.Trim() }
+                }
+            };
+
+            // A single save keeps the color and its translations atomic.
+            Add(color);
+            await SaveChangesAsync();
+
+            _logger.LogInformation("Color created successfully with ID: {ColorId}", color.Id);
+            return new()
+            {
+                IsSuccess = true,
+                Data = color.ToAdminDetailsDto(arabic.Id, english.Id),
+                Message = "Color created successfully."
+            };
+        }
+        #endregion
+
         public async Task<ApiResponse<(IEnumerable<ColorDto> Items, int TotalCount)>> GetAll(string langCode)
         {
             int langId = await GetLanguageId(langCode);
