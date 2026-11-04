@@ -1,6 +1,7 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
 using Application.Responses;
+using Azure.Core;
 using Core.Entities;
 using Core.Interfaces;
 using Core.Settings;
@@ -42,22 +43,24 @@ namespace API.Controllers
 
             try
             {
-                var cookieOptions = new CookieOptions
+                var accessCookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
                     Secure = true,
                     SameSite = SameSiteMode.None,
-                    IsEssential = true
+                    Expires = DateTime.Now.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes) // Access Token Expiry
                 };
 
-                var accessTokenCookie = cookieOptions;
-                accessTokenCookie.Expires = DateTime.Now.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes);
+                var refreshCookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTime.Now.AddDays(_jwtSettings.RefreshTokenExpirationDays) // Refresh Token Expiry
+                };
 
-                var refreshTokenCookie = cookieOptions;
-                refreshTokenCookie.Expires = DateTime.Now.AddDays(_jwtSettings.RefreshTokenExpirationDays);
-
-                Response.Cookies.Append("accessToken", response.AccessToken, accessTokenCookie);
-                Response.Cookies.Append("refreshToken", response.RefreshToken, refreshTokenCookie);
+                Response.Cookies.Append("accessToken", response.AccessToken, accessCookieOptions);
+                Response.Cookies.Append("refreshToken", response.RefreshToken, refreshCookieOptions);
 
                 _logger.LogInformation("Cookies generated and appended successfully.");
             }
