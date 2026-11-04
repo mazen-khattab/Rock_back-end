@@ -103,7 +103,8 @@ builder.Services.AddCors(option =>
                     "http://localhost:5173",
                     "http://localhost:5174",
                     "https://rockstore-weld.vercel.app",
-                    "https://keef-wear.com"
+                    "https://keef-wear.com",
+                    "https://dashboard.keef-wear.com"
                 )
                 .AllowAnyHeader()
                 .AllowAnyMethod()
