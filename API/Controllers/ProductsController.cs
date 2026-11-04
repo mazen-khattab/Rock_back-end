@@ -1,6 +1,7 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
 using Application.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 
@@ -135,6 +136,7 @@ namespace API.Controllers
 
         [HttpGet]
         [Route("admin")]
+        [Authorize(Roles = "Admin,Owner")]
         public async Task<IActionResult> GetAdminProducts([FromQuery] ProductFilterDto filterDto)
         {
             _logger.LogInformation("GetAdminProducts controller called with PageNumber: {PageNumber}, PageSize: {PageSize}",
@@ -183,6 +185,7 @@ namespace API.Controllers
 
         [HttpGet]
         [Route("admin/{id}")]
+        [Authorize(Roles = "Admin,Owner")]
         public async Task<IActionResult> GetAdminProductById(int id)
         {
             string baseUrl = BaseURL();
@@ -214,6 +217,7 @@ namespace API.Controllers
 
         [HttpPost]
         [Route("admin/create")]
+        [Authorize(Roles = "Admin,Owner")]
         public async Task<IActionResult> CreateProduct([FromForm] ProductDetailsAdminDto dto)
         {
             var baseUrl = BaseURL();
@@ -246,6 +250,7 @@ namespace API.Controllers
 
         [HttpPut]
         [Route("admin/{id}/edit")]
+        [Authorize(Roles = "Admin,Owner")]
         public async Task<IActionResult> UpdateProduct(int id, [FromForm] ProductDetailsAdminDto dto)
         {
             var baseUrl = BaseURL();
@@ -277,6 +282,7 @@ namespace API.Controllers
 
         [HttpDelete]
         [Route("admin/{id}/delete")]
+        [Authorize(Roles = "Admin,Owner")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
             _logger.LogInformation("HTTP DELETE request received for api/products/admin/{Id}/delete", id);

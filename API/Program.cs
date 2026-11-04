@@ -1,4 +1,5 @@
 using API.Middleware;
+using Application.Interfaces;
 using Core.Entities;
 using Core.Settings;
 using Hangfire;
@@ -163,6 +164,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHangfireDashboard("/hangfire");
+
+RecurringJob.AddOrUpdate<IOutboxProcessor>(
+    "outbox-processor",
+    processor => processor.ProcessPendingMessagesAsync(),
+    Cron.Minutely());
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

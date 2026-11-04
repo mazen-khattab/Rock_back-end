@@ -1,8 +1,10 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Application.Mapping;
 using Application.Services;
 using Core.Interfaces;
 using Hangfire;
+using Infrastructure.BackgroundJobs;
+using Infrastructure.BackgroundJobs.Strategies;
 using Infrastructure.External.Email;
 using Infrastructure.Persistence;
 using Infrastructure.Repositories;
@@ -35,6 +37,10 @@ namespace Infrastructure.Extensions
             services.AddScoped(typeof(ICategoryService), typeof(CategoryService));
             services.AddScoped(typeof(ISizeService), typeof(SizeService));
             services.AddScoped(typeof(IColorService), typeof(ColorService));
+
+            // Outbox
+            services.AddScoped<IOutboxProcessor, OutboxProcessor>();
+            services.AddScoped<IOutboxMessageStrategy, AdminOrderEmailStrategy>();
 
 
             // Hangfire

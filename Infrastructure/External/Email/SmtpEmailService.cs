@@ -11,6 +11,8 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using System;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Infrastructure.External.Email
@@ -28,12 +30,16 @@ namespace Infrastructure.External.Email
 
         public async Task SendAdminEmailAsync(EmailInfoDto job, bool isOrder = true)
         {
-            var adminEmail = !string.IsNullOrWhiteSpace(_smtpSettings.AdminEmail)
-                ? _smtpSettings.AdminEmail
-                : "mazenkhtab11@gmail.com";
+            if (string.IsNullOrWhiteSpace(_smtpSettings.AdminEmail))
+            {
+                throw new InvalidOperationException("SmtpSettings:AdminEmail is not configured. Admin notifications cannot be sent without a configured recipient.");
+            }
+
+            var adminEmail = _smtpSettings.AdminEmail;
 
             string subject;
             var builder = new BodyBuilder();
+            string idempotencyKey;
 
             if (isOrder)
             {
@@ -43,6 +49,9 @@ namespace Infrastructure.External.Email
 
                 byte[] pdfBytes = CreateOrderPdf(job);
                 builder.Attachments.Add("OrderDetails.pdf", pdfBytes, new ContentType("application", "pdf"));
+
+                // Deterministic idempotency key for order emails
+                idempotencyKey = $"order-{job.OrderNumber}";
             }
             else
             {
@@ -51,12 +60,15 @@ namespace Infrastructure.External.Email
                     <p><strong>Name:</strong> {job.FName}</p>
                     <p><strong>Phone Number:</strong> {job.Phone}</p>";
                 builder.TextBody = $"User Contact Info\nName: {job.FName}\nPhone Number: {job.Phone}";
+
+                // Deterministic idempotency key for contact inquiries
+                idempotencyKey = $"contact-{job.Phone}-{job.FName}";
             }
 
-            await SendEmailInternalAsync(adminEmail, subject, builder);
+            await SendEmailInternalAsync(adminEmail, subject, builder, idempotencyKey);
         }
 
-        public async Task SendEmailAsync(string toEmail, string subject, string htmlBody, byte[]? attachmentBytes = null, string? attachmentFileName = null)
+        public async Task SendEmailAsync(string toEmail, string subject, string htmlBody, byte[]? attachmentBytes = null, string? attachmentFileName = null, string? idempotencyKey = null)
         {
             var builder = new BodyBuilder
             {
@@ -68,26 +80,46 @@ namespace Infrastructure.External.Email
                 builder.Attachments.Add(attachmentFileName, attachmentBytes);
             }
 
-            await SendEmailInternalAsync(toEmail, subject, builder);
+            await SendEmailInternalAsync(toEmail, subject, builder, idempotencyKey);
         }
 
-        private async Task SendEmailInternalAsync(string toEmail, string subject, BodyBuilder bodyBuilder)
+        private async Task SendEmailInternalAsync(string toEmail, string subject, BodyBuilder bodyBuilder, string? idempotencyKey = null)
         {
             var senderEmail = !string.IsNullOrWhiteSpace(_smtpSettings.SenderEmail)
                 ? _smtpSettings.SenderEmail
-                : (!string.IsNullOrWhiteSpace(_smtpSettings.SmtpLogin) ? _smtpSettings.SmtpLogin : "mazenkhtab123@gmail.com");
+                : _smtpSettings.SmtpLogin;
+
+            if (string.IsNullOrWhiteSpace(senderEmail))
+            {
+                throw new InvalidOperationException("Neither SmtpSettings:SenderEmail nor SmtpSettings:SmtpLogin is configured.");
+            }
 
             var senderDisplayName = !string.IsNullOrWhiteSpace(_smtpSettings.SenderDisplayName)
                 ? _smtpSettings.SenderDisplayName
                 : "Rock Store";
 
-            _logger.LogInformation("Sending email to {Recipient} from {Sender} with subject '{Subject}'", toEmail, senderEmail, subject);
+            _logger.LogInformation("Sending email to {Recipient} from {Sender} with subject '{Subject}' [IdempotencyKey: {Key}]",
+                toEmail, senderEmail, subject, idempotencyKey ?? "None");
 
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(senderDisplayName, senderEmail));
             message.To.Add(MailboxAddress.Parse(toEmail));
             message.Subject = subject;
             message.Body = bodyBuilder.ToMessageBody();
+
+            // Set deterministic RFC 5322 Message-ID if idempotency key is provided
+            if (!string.IsNullOrWhiteSpace(idempotencyKey))
+            {
+                var domain = senderEmail.Contains('@') ? senderEmail.Split('@').Last() : "rockstore.com";
+                var sanitizedKey = Regex.Replace(idempotencyKey, @"[^a-zA-Z0-9_\-\.]", "-");
+                message.MessageId = $"{sanitizedKey}@{domain}";
+                message.Headers.Add("X-Correlation-ID", sanitizedKey);
+            }
+
+            if (!_smtpSettings.EnableSsl && !string.IsNullOrWhiteSpace(_smtpSettings.SmtpPassword))
+            {
+                throw new InvalidOperationException("Refusing to transmit SMTP credentials over an unencrypted connection. Please enable SSL/TLS in SmtpSettings.");
+            }
 
             try
             {
@@ -105,11 +137,11 @@ namespace Infrastructure.External.Email
                 await smtp.SendAsync(message);
                 await smtp.DisconnectAsync(true);
 
-                _logger.LogInformation("Email sent successfully to {Recipient}.", toEmail);
+                _logger.LogInformation("Email sent successfully to {Recipient} with MessageId {MessageId}.", toEmail, message.MessageId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send email to {Recipient}: {Message}", toEmail, ex.Message);
+                _logger.LogError(ex, "Failed to send email to {Recipient} with MessageId {MessageId}: {Message}", toEmail, message.MessageId, ex.Message);
                 throw;
             }
         }
@@ -124,9 +156,7 @@ namespace Infrastructure.External.Email
             return _smtpSettings.SmtpPort switch
             {
                 465 => SecureSocketOptions.SslOnConnect,
-                587 => SecureSocketOptions.StartTls,
-                25 => SecureSocketOptions.StartTlsWhenAvailable,
-                _ => SecureSocketOptions.Auto
+                _ => SecureSocketOptions.StartTls
             };
         }
 

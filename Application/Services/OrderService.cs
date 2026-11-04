@@ -1,10 +1,11 @@
-﻿using Application.DTOs;
+using Application.DTOs;
 using Application.Interfaces;
 using Application.Mapping;
 using Application.Responses;
 using Core.Entities;
 using Core.Enum;
 using Core.Enums;
+using Core.Extensions;
 using Core.Interfaces;
 using Hangfire;
 using Microsoft.AspNetCore.Identity;
@@ -26,6 +27,7 @@ namespace Application.Services
         private readonly IServices<Language> _langServices;
         private readonly UserManager<User> _userManager;
         private readonly IAuthService _authService;
+        private readonly IServices<OutboxMessage> _outboxService;
 
         public OrderService(
             IRepo<Order> repo,
@@ -37,7 +39,8 @@ namespace Application.Services
             IServices<InventoryTransaction> inventoryTransactionService,
             IServices<Language> lang,
             UserManager<User> userManager,
-            IAuthService authService) : base(unitOfWork, repo, logger)
+            IAuthService authService,
+            IServices<OutboxMessage> outboxService) : base(unitOfWork, repo, logger)
         {
             _cartServices = cartServices;
             _userCartServices = userCartServices;
@@ -46,6 +49,7 @@ namespace Application.Services
             _langServices = lang;
             _userManager = userManager;
             _authService = authService;
+            _outboxService = outboxService;
         }
 
         #region Admin Orders
@@ -295,7 +299,11 @@ namespace Application.Services
                 if (!userCart.IsSuccess)
                 {
                     _logger.LogError("Cart handling failed for UserId: {UserId} - Error: {ErrorMessage}", user.Id, userCart.Message);
-                    await _unitOfWork.RollbackAsync();
+                    if (!_unitOfWork.IsTransactionFinished())
+                    {
+                        await _unitOfWork.RollbackAsync();
+                        _logger.LogInformation("Transaction rolled back successfully");
+                    }
 
                     return new()
                     {
@@ -314,7 +322,11 @@ namespace Application.Services
                 if (!orderResponse.IsSuccess)
                 {
                     _logger.LogError("Order creation failed for UserId: {UserId} - Error: {ErrorMessage}", user.Id, orderResponse.Message);
-                    await _unitOfWork.RollbackAsync();
+                    if (!_unitOfWork.IsTransactionFinished())
+                    {
+                        await _unitOfWork.RollbackAsync();
+                        _logger.LogInformation("Transaction rolled back successfully");
+                    }
 
                     return new()
                     {
@@ -337,7 +349,11 @@ namespace Application.Services
                 if (!orderDetailsReponse.IsSuccess)
                 {
                     _logger.LogError("Order details creation failed for OrderId: {OrderId} - Error: {ErrorMessage}", order.Id, orderDetailsReponse.Message);
-                    await _unitOfWork.RollbackAsync();
+                    if (!_unitOfWork.IsTransactionFinished())
+                    {
+                        await _unitOfWork.RollbackAsync();
+                        _logger.LogInformation("Transaction rolled back successfully");
+                    }
                     return new()
                     {
                         IsSuccess = false,
@@ -356,7 +372,11 @@ namespace Application.Services
                 if (!stockUpdateResponse.IsSuccess)
                 {
                     _logger.LogError("Variant reservation failed for UserId: {UserId} - Error: {ErrorMessage}", user.Id, stockUpdateResponse.Message);
-                    await _unitOfWork.RollbackAsync();
+                    if (!_unitOfWork.IsTransactionFinished())
+                    {
+                        await _unitOfWork.RollbackAsync();
+                        _logger.LogInformation("Transaction rolled back successfully");
+                    }
 
                     return new()
                     {
@@ -376,7 +396,11 @@ namespace Application.Services
                 if (!emptyCartResponse.IsSuccess)
                 {
                     _logger.LogError("Emptying cart failed for UserId: {UserId} - Error: {ErrorMessage}", user.Id, emptyCartResponse.Message);
-                    await _unitOfWork.RollbackAsync();
+                    if (!_unitOfWork.IsTransactionFinished())
+                    {
+                        await _unitOfWork.RollbackAsync();
+                        _logger.LogInformation("Transaction rolled back successfully");
+                    }
 
                     return new()
                     {
@@ -395,7 +419,11 @@ namespace Application.Services
                 if (!inventoryTransactionResponse.IsSuccess)
                 {
                     _logger.LogError("Creating inventory transactions failed for OrderId: {OrderId} - Error: {ErrorMessage}", order.Id, inventoryTransactionResponse.Message);
-                    await _unitOfWork.RollbackAsync();
+                    if (!_unitOfWork.IsTransactionFinished())
+                    {
+                        await _unitOfWork.RollbackAsync();
+                        _logger.LogInformation("Transaction rolled back successfully");
+                    }
                     return new()
                     {
                         IsSuccess = false,
@@ -405,27 +433,11 @@ namespace Application.Services
                 }
                 #endregion
 
-                // STEP 10 - COMMIT TRANSACTION
-                #region COMMIT TRANSACTION & CREATE CHECKOUT RESPONSE
-                _logger.LogInformation("Step 10: Committing transaction");
-                await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitAsync();
+                // STEP 10 - STAGE ADMIN NOTIFICATION IN OUTBOX (INSIDE TRANSACTION)
+                #region STAGE OUTBOX NOTIFICATION
+                _logger.LogInformation("Step 10: Staging admin notification in Outbox for OrderId: {OrderId}", order.Id);
 
-                _logger.LogInformation("Checkout completed successfully - OrderId: {OrderId}, OrderNumber: {OrderNumber}",
-                    order.Id, order.Number);
-
-                var checkoutResponse = new CheckoutResponseDto
-                {
-                    OrderId = order.Id,
-                    OrderNumber = order.Number,
-                    CreatedAt = order.CreatedAt,
-                    TotalPrice = order.TotalPrice
-                };
-                #endregion
-
-                // STEP 11 - SEND ADMIN EMAIL
-                #region SEND ADMIN EMAIL
-                BackgroundJob.Enqueue<IEmailService>(e => e.SendAdminEmailAsync(new EmailInfoDto()
+                var emailInfoDto = new EmailInfoDto()
                 {
                     OrderNumber = order.Number,
                     FName = request.FirstName,
@@ -437,8 +449,47 @@ namespace Application.Services
                     Governorate = request.Governorate,
                     Items = userCart.Data.ToDtoList(baseUrl),
                     TotalPrice = order.TotalPrice
-                }));
+                };
+
+                var outboxMessage = new OutboxMessage
+                {
+                    Type = OutboxMessageType.AdminOrderNotification.ToDatabaseString(),
+                    Payload = System.Text.Json.JsonSerializer.Serialize(emailInfoDto),
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _outboxService.Add(outboxMessage);
                 #endregion
+
+                // STEP 11 - COMMIT TRANSACTION
+                #region COMMIT TRANSACTION & CREATE CHECKOUT RESPONSE
+                _logger.LogInformation("Step 10: Committing transaction");
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+
+                _logger.LogInformation("Checkout completed successfully - OrderId: {OrderId}, OrderNumber: {OrderNumber}", order.Id, order.Number);
+
+                var checkoutResponse = new CheckoutResponseDto
+                {
+                    OrderId = order.Id,
+                    OrderNumber = order.Number,
+                    CreatedAt = order.CreatedAt,
+                    TotalPrice = order.TotalPrice
+                };
+                #endregion
+
+                // STEP 12 - TRIGGER OUTBOX PROCESSOR (NON-BLOCKING)
+                #region TRIGGER OUTBOX PROCESSOR
+                try
+                {
+                    BackgroundJob.Enqueue<IOutboxProcessor>(p => p.ProcessPendingMessagesAsync());
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to immediately trigger OutboxProcessor for OrderId: {OrderId}. Recurring job will process it.", order.Id);
+                }
+                #endregion
+
 
                 return new()
                 {
@@ -453,8 +504,11 @@ namespace Application.Services
 
                 try
                 {
-                    await _unitOfWork.RollbackAsync();
-                    _logger.LogInformation("Transaction rolled back successfully");
+                    if (!_unitOfWork.IsTransactionFinished())
+                    {
+                        await _unitOfWork.RollbackAsync();
+                        _logger.LogInformation("Transaction rolled back successfully");
+                    }
                 }
                 catch (Exception rollbackEx)
                 {
