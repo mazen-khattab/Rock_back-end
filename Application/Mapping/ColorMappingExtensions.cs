@@ -8,6 +8,26 @@ namespace Application.Mapping
 {
     public static class ColorMappingExtensions
     {
+        public static void FromAdminDetailsDto(this Color color, ColorDetailsAdminDto dto, int arabicLanguageId, int englishLanguageId)
+        {
+            color.HexCode = dto.HexCode.ToUpperInvariant();
+            color.IsActive = dto.IsActive;
+            SetTranslation(color, arabicLanguageId, dto.NameAr);
+            SetTranslation(color, englishLanguageId, dto.NameEn);
+        }
+
+        private static void SetTranslation(Color color, int languageId, string name)
+        {
+            var translation = color.Translations.FirstOrDefault(t => t.LanguageId == languageId);
+            if (translation == null)
+            {
+                translation = new ColorTranslation { LanguageId = languageId };
+                color.Translations.Add(translation);
+            }
+
+            translation.Name = name.Trim();
+        }
+
         public static ColorDetailsAdminDto ToAdminDetailsDto(this Color color, int arabicLanguageId, int englishLanguageId)
         {
             ArgumentNullException.ThrowIfNull(color);

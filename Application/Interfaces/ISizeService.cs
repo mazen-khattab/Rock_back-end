@@ -9,6 +9,8 @@ namespace Application.Interfaces
     public interface ISizeService : IServices<Size>
     {
         Task<ApiResponse<SizeDto>> CreateSize(SizeDetailsDto dto);
+        Task<ApiResponse<SizeDto>> UpdateSize(int id, SizeDetailsDto dto);
+        Task<ApiResponse<int>> DeleteSize(int id);
         Task<ApiResponse<(IEnumerable<SizeDto> Items, int TotalCount)>> GetAll();
         Task<ApiResponse<SizeDetailsDto>> GetById(int sizeId);
         Task<ApiResponse<IEnumerable<SizeLookupDto>>> Lookup();

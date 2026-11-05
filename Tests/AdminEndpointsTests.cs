@@ -30,7 +30,7 @@ using Xunit;
 
 namespace Tests
 {
-    public class AdminEndpointsTests : IAsyncLifetime
+    public partial class AdminEndpointsTests : IAsyncLifetime
     {
         private readonly SqliteConnection _connection = new("Data Source=:memory:");
         private IHost _host = null!;

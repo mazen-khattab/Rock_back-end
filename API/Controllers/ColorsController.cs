@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Application.Responses;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
+using System.ComponentModel.DataAnnotations;
 
 namespace API.Controllers
 {
@@ -56,6 +57,30 @@ namespace API.Controllers
                 Method = HttpMethods.Post,
                 TraceId = HttpContext.TraceIdentifier
             });
+        }
+
+        /// <summary>
+        /// Updates the color hex code, active state and both language translations.
+        /// </summary>
+        [HttpPut("admin/{id:int}/edit")]
+        [Authorize(Roles = "Admin,Owner")]
+        public async Task<IActionResult> UpdateColor([Range(1, int.MaxValue)] int id, [FromBody] ColorDetailsAdminDto dto)
+        {
+            _logger.LogInformation("HTTP PUT request received for color ID: {ColorId}", id);
+            var result = await _colorService.UpdateColor(id, dto);
+            return this.ToApiResult(result);
+        }
+
+        /// <summary>
+        /// Permanently deletes a color only when no variants reference it.
+        /// </summary>
+        [HttpDelete("admin/{id:int}/delete")]
+        [Authorize(Roles = "Admin,Owner")]
+        public async Task<IActionResult> DeleteColor([Range(1, int.MaxValue)] int id)
+        {
+            _logger.LogInformation("HTTP DELETE request received for color ID: {ColorId}", id);
+            var result = await _colorService.DeleteColor(id);
+            return this.ToApiResult(result);
         }
 
         [HttpGet]

@@ -1,5 +1,7 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
+using Core.ExceptionsTypes;
+using Microsoft.Data.SqlClient;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -147,8 +149,25 @@ namespace Infrastructure.Repositories
         public void Delete(T entity) => _dbSet.Remove(entity);
 
         /// <summary>
-        /// Physically deletes the row from the database using ExecuteDeleteAsync to bypass the change tracker path.
-        /// This performs a server-side DELETE WHERE Id = {id} and will not be intercepted by AppDbContext's SaveChanges logic.
+        /// Permanently deletes a matching unused record without loading an entity graph.
+        /// </summary>
+        public async Task<int> DeleteIfUnusedAsync(int id, Expression<Func<T, bool>> isUnused)
+        {
+            try
+            {
+                // Check references in the DELETE statement itself, including soft-deleted products.
+                return await _dbSet.IgnoreQueryFilters()
+                    .Where(e => e.Id == id).Where(isUnused).ExecuteDeleteAsync();
+            }
+            catch (SqlException ex) when (ex.Number == 547)
+            {
+                // Foreign keys also protect against references added by a concurrent request.
+                throw new EntityInUseException("The record is referenced by other data.", ex);
+            }
+        }
+
+        /// <summary>
+        /// Physically deletes the row without using the change tracker or soft-delete handling.
         /// </summary>
         public async Task HardDeleteAsync(T entity)
         {

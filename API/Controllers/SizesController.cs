@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace API.Controllers
 {
@@ -51,6 +52,30 @@ namespace API.Controllers
                 Method = HttpMethods.Post,
                 TraceId = HttpContext.TraceIdentifier
             });
+        }
+
+        /// <summary>
+        /// Updates a size's name, display order and active state.
+        /// </summary>
+        [HttpPut("admin/{id:int}/edit")]
+        [Authorize(Roles = "Admin,Owner")]
+        public async Task<IActionResult> UpdateSize([Range(1, int.MaxValue)] int id, [FromBody] SizeDetailsDto dto)
+        {
+            _logger.LogInformation("HTTP PUT request received for size ID: {SizeId}", id);
+            var result = await _sizeService.UpdateSize(id, dto);
+            return this.ToApiResult(result);
+        }
+
+        /// <summary>
+        /// Permanently deletes a size only when no variants reference it.
+        /// </summary>
+        [HttpDelete("admin/{id:int}/delete")]
+        [Authorize(Roles = "Admin,Owner")]
+        public async Task<IActionResult> DeleteSize([Range(1, int.MaxValue)] int id)
+        {
+            _logger.LogInformation("HTTP DELETE request received for size ID: {SizeId}", id);
+            var result = await _sizeService.DeleteSize(id);
+            return this.ToApiResult(result);
         }
 
         [HttpGet]

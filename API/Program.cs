@@ -104,7 +104,8 @@ builder.Services.AddCors(option =>
                     "http://localhost:5174",
                     "https://rockstore-weld.vercel.app",
                     "https://keef-wear.com",
-                    "https://dashboard.keef-wear.com"
+                    "https://dashboard.keef-wear.com",
+                    "https://www.keef-wear.com/"
                 )
                 .AllowAnyHeader()
                 .AllowAnyMethod()
@@ -116,7 +117,7 @@ builder.Services.AddCors(option =>
 var app = builder.Build();
 
 var supportedCultures = new[] { "ar", "en" };
- 
+
 var logalizationOptions = new RequestLocalizationOptions()
     .SetDefaultCulture(supportedCultures[0])
     .AddSupportedCultures(supportedCultures)
@@ -166,10 +167,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHangfireDashboard("/hangfire");
 
-RecurringJob.AddOrUpdate<IOutboxProcessor>(
-    "outbox-processor",
-    processor => processor.ProcessPendingMessagesAsync(),
-    Cron.Minutely());
+RecurringJob.AddOrUpdate<IOutboxProcessor>("outbox-processor", processor => processor.ProcessPendingMessagesAsync(), Cron.Minutely());
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

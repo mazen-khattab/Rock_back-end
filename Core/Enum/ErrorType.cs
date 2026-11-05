@@ -13,5 +13,6 @@ namespace Core.Enum
         ConcurrencyConflict, // => 409
         ValidationError, // => 422,
         ServerError, // => 500
+        Conflict, // => 409, when an entity is still referenced
     }
 }

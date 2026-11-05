@@ -11,6 +11,8 @@ namespace Application.Interfaces
     public interface IColorService : IServices<Color>
     {
         Task<ApiResponse<ColorDetailsAdminDto>> CreateColor(ColorDetailsAdminDto dto);
+        Task<ApiResponse<ColorDetailsAdminDto>> UpdateColor(int id, ColorDetailsAdminDto dto);
+        Task<ApiResponse<int>> DeleteColor(int id);
         Task<ApiResponse<(IEnumerable<ColorDto> Items, int TotalCount)>> GetAll(string langCode);
         Task<ApiResponse<ColorDetailsDto>> GetById(int colorId, string langCode);
         Task<ApiResponse<IEnumerable<ColorLookupDto>>> Lookup(string langCode);

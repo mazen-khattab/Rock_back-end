@@ -5,6 +5,7 @@ using Application.Responses;
 using Core.Entities;
 using Core.Enum;
 using Core.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class CategoryService : Services<Category>, ICategoryService
+    public class CategoryService : LookupService<Category>, ICategoryService
     {
         private readonly IServices<Language> _langServices;
 
@@ -44,10 +45,9 @@ namespace Application.Services
             _logger.LogInformation("CreateCategory requested");
 
             // Resolve language IDs from the database instead of assuming fixed seed IDs.
-            var arabic = await _langServices.GetAsync(l => l.Code == "ar", tracked: false);
-            var english = await _langServices.GetAsync(l => l.Code == "en", tracked: false);
+            var languages = await LookupLanguageHelper.GetLanguageIdsAsync(_langServices);
 
-            if (arabic == null || english == null)
+            if (languages == null)
             {
                 _logger.LogWarning("Cannot create category because Arabic or English language is missing");
                 return new()
@@ -58,15 +58,9 @@ namespace Application.Services
                 };
             }
 
-            var category = new Category
-            {
-                IsActive = dto.IsActive,
-                Translations = new List<CategoryTranslation>
-                {
-                    new() { LanguageId = arabic.Id, Name = dto.NameAr.Trim() },
-                    new() { LanguageId = english.Id, Name = dto.NameEn.Trim() }
-                }
-            };
+            var (arabicId, englishId) = languages.Value;
+            var category = new Category();
+            category.FromAdminDetailsDto(dto, arabicId, englishId);
 
             // Save the category and both translations together in one database operation.
             Add(category);
@@ -76,10 +70,49 @@ namespace Application.Services
             return new()
             {
                 IsSuccess = true,
-                Data = category.ToAdminDetailsDto(arabic.Id, english.Id),
+                Data = category.ToAdminDetailsDto(arabicId, englishId),
                 Message = "Category created successfully."
             };
         }
+        #endregion
+
+        #region UpdateCategory Method
+        public async Task<ApiResponse<CategoryDetailsAdminDto>> UpdateCategory(int id, CategoryDetailsAdminDto dto)
+        {
+            _logger.LogInformation("UpdateCategory requested for ID: {CategoryId}", id);
+
+            if (dto.Id.HasValue && dto.Id.Value != id)
+            {
+                _logger.LogWarning("Category update ID does not match the route ID: {CategoryId}", id);
+                return new() { IsSuccess = false, ErrorType = ErrorType.ValidationError, Message = "Category ID must match the route ID." };
+            }
+
+            // Track only the category and its translations; products and offers are not needed.
+            var category = await GetAsync(c => c.Id == id, includes: c => c.Translations);
+            if (category == null)
+            {
+                _logger.LogWarning("Category with ID: {CategoryId} was not found for update", id);
+                return new() { IsSuccess = false, ErrorType = ErrorType.NotFound, Message = "Category not found." };
+            }
+
+            var languages = await LookupLanguageHelper.GetLanguageIdsAsync(_langServices);
+            if (languages == null)
+            {
+                _logger.LogWarning("Cannot update category because Arabic or English language is missing");
+                return new() { IsSuccess = false, ErrorType = ErrorType.NotFound, Message = "Arabic and English languages must be configured before updating a category." };
+            }
+
+            var (arabicId, englishId) = languages.Value;
+            // Map only editable fields, preserving IDs, audit fields and unrelated translations.
+            category.FromAdminDetailsDto(dto, arabicId, englishId);
+            return await SaveLookupUpdateAsync(id, "Category", () => category.ToAdminDetailsDto(arabicId, englishId));
+        }
+        #endregion
+
+        #region DeleteCategory Method
+        public Task<ApiResponse<int>> DeleteCategory(int id) =>
+            DeleteUnusedLookupAsync(id, c => !c.Products.Any(), "Category",
+                "Category cannot be deleted because it is used by products, including soft-deleted products.");
         #endregion
 
         #region GetAll Method

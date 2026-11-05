@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Services
 {
-    public class ColorService : Services<Color>, IColorService
+    public class ColorService : LookupService<Color>, IColorService
     {
         private readonly IServices<Language> _langServices;
 
@@ -45,10 +45,9 @@ namespace Application.Services
             _logger.LogInformation("CreateColor requested with hex code: {HexCode}", dto.HexCode);
 
             // Both translations belong to the same color, as in product creation.
-            var arabic = await _langServices.GetAsync(l => l.Code == "ar", tracked: false);
-            var english = await _langServices.GetAsync(l => l.Code == "en", tracked: false);
+            var languages = await LookupLanguageHelper.GetLanguageIdsAsync(_langServices);
 
-            if (arabic == null || english == null)
+            if (languages == null)
             {
                 _logger.LogWarning("Cannot create color because Arabic or English language is missing");
                 return new()
@@ -59,16 +58,9 @@ namespace Application.Services
                 };
             }
 
-            var color = new Color
-            {
-                HexCode = dto.HexCode.ToUpperInvariant(),
-                IsActive = dto.IsActive,
-                Translations = new List<ColorTranslation>
-                {
-                    new() { LanguageId = arabic.Id, Name = dto.NameAr.Trim() },
-                    new() { LanguageId = english.Id, Name = dto.NameEn.Trim() }
-                }
-            };
+            var (arabicId, englishId) = languages.Value;
+            var color = new Color();
+            color.FromAdminDetailsDto(dto, arabicId, englishId);
 
             // A single save keeps the color and its translations atomic.
             Add(color);
@@ -78,10 +70,48 @@ namespace Application.Services
             return new()
             {
                 IsSuccess = true,
-                Data = color.ToAdminDetailsDto(arabic.Id, english.Id),
+                Data = color.ToAdminDetailsDto(arabicId, englishId),
                 Message = "Color created successfully."
             };
         }
+        #endregion
+
+        #region UpdateColor Method
+        public async Task<ApiResponse<ColorDetailsAdminDto>> UpdateColor(int id, ColorDetailsAdminDto dto)
+        {
+            _logger.LogInformation("UpdateColor requested for ID: {ColorId}", id);
+
+            if (dto.Id.HasValue && dto.Id.Value != id)
+            {
+                _logger.LogWarning("Color update ID does not match the route ID: {ColorId}", id);
+                return new() { IsSuccess = false, ErrorType = ErrorType.ValidationError, Message = "Color ID must match the route ID." };
+            }
+
+            // Track only the color and translations needed for editing.
+            var color = await GetAsync(c => c.Id == id, includes: c => c.Translations);
+            if (color == null)
+            {
+                _logger.LogWarning("Color with ID: {ColorId} was not found for update", id);
+                return new() { IsSuccess = false, ErrorType = ErrorType.NotFound, Message = "Color not found." };
+            }
+
+            var languages = await LookupLanguageHelper.GetLanguageIdsAsync(_langServices);
+            if (languages == null)
+            {
+                _logger.LogWarning("Cannot update color because Arabic or English language is missing");
+                return new() { IsSuccess = false, ErrorType = ErrorType.NotFound, Message = "Arabic and English languages must be configured before updating a color." };
+            }
+
+            var (arabicId, englishId) = languages.Value;
+            color.FromAdminDetailsDto(dto, arabicId, englishId);
+            return await SaveLookupUpdateAsync(id, "Color", () => color.ToAdminDetailsDto(arabicId, englishId));
+        }
+        #endregion
+
+        #region DeleteColor Method
+        public Task<ApiResponse<int>> DeleteColor(int id) =>
+            DeleteUnusedLookupAsync(id, c => !c.Variants.Any(), "Color",
+                "Color cannot be deleted because it is used by product variants.");
         #endregion
 
         public async Task<ApiResponse<(IEnumerable<ColorDto> Items, int TotalCount)>> GetAll(string langCode)

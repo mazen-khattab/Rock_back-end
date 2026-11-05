@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Application.Responses;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
+using System.ComponentModel.DataAnnotations;
 
 namespace API.Controllers
 {
@@ -56,6 +57,30 @@ namespace API.Controllers
                 Method = HttpMethods.Post,
                 TraceId = HttpContext.TraceIdentifier
             });
+        }
+
+        /// <summary>
+        /// Updates category fields and both language translations for administrators.
+        /// </summary>
+        [HttpPut("admin/{id:int}/edit")]
+        [Authorize(Roles = "Admin,Owner")]
+        public async Task<IActionResult> UpdateCategory([Range(1, int.MaxValue)] int id, [FromBody] CategoryDetailsAdminDto dto)
+        {
+            _logger.LogInformation("HTTP PUT request received for category ID: {CategoryId}", id);
+            var result = await _categoryService.UpdateCategory(id, dto);
+            return this.ToApiResult(result);
+        }
+
+        /// <summary>
+        /// Permanently deletes a category only when no products reference it.
+        /// </summary>
+        [HttpDelete("admin/{id:int}/delete")]
+        [Authorize(Roles = "Admin,Owner")]
+        public async Task<IActionResult> DeleteCategory([Range(1, int.MaxValue)] int id)
+        {
+            _logger.LogInformation("HTTP DELETE request received for category ID: {CategoryId}", id);
+            var result = await _categoryService.DeleteCategory(id);
+            return this.ToApiResult(result);
         }
 
         [HttpGet]

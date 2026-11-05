@@ -83,5 +83,11 @@ namespace Core.Interfaces
         /// Physically delete regardless of ISoftDelete.
         /// </summary>
         Task HardDeleteAsync(T entity);
+
+        /// <summary>
+        /// Permanently deletes an entity only when it satisfies the unused condition.
+        /// Returns the affected row count and includes references hidden by query filters.
+        /// </summary>
+        Task<int> DeleteIfUnusedAsync(int id, Expression<Func<T, bool>> isUnused);
     }
 }
