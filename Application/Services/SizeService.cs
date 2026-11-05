@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class SizeService : Services<Size>, ISizeService
+    public class SizeService : LookupService<Size>, ISizeService
     {
         public SizeService(IUnitOfWork unitOfWork, IRepo<Size> repo, ILogger<SizeService> logger) : base(unitOfWork, repo, logger) { }
 
@@ -42,6 +42,32 @@ namespace Application.Services
                 Message = "Size created successfully."
             };
         }
+        #endregion
+
+        #region UpdateSize Method
+        public async Task<ApiResponse<SizeDto>> UpdateSize(int id, SizeDetailsDto dto)
+        {
+            _logger.LogInformation("UpdateSize requested for ID: {SizeId}", id);
+
+            var size = await GetAsync(s => s.Id == id);
+            if (size == null)
+            {
+                _logger.LogWarning("Size with ID: {SizeId} was not found for update", id);
+                return new() { IsSuccess = false, ErrorType = ErrorType.NotFound, Message = "Size not found." };
+            }
+
+            // Update only the fields exposed by the request DTO.
+            size.Name = dto.Name.Trim();
+            size.SortOrder = dto.SortOrder;
+            size.IsActive = dto.IsActive;
+            return await SaveLookupUpdateAsync(id, "Size", () => size.ToDto());
+        }
+        #endregion
+
+        #region DeleteSize Method
+        public Task<ApiResponse<int>> DeleteSize(int id) =>
+            DeleteUnusedLookupAsync(id, s => !s.Variants.Any(), "Size",
+                "Size cannot be deleted because it is used by product variants.");
         #endregion
 
         public async Task<ApiResponse<(IEnumerable<SizeDto> Items, int TotalCount)>> GetAll()

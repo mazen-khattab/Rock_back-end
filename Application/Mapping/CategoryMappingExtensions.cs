@@ -8,6 +8,25 @@ namespace Application.Mapping
 {
     public static class CategoryMappingExtensions
     {
+        public static void FromAdminDetailsDto(this Category category, CategoryDetailsAdminDto dto, int arabicLanguageId, int englishLanguageId)
+        {
+            category.IsActive = dto.IsActive;
+            SetTranslation(category, arabicLanguageId, dto.NameAr);
+            SetTranslation(category, englishLanguageId, dto.NameEn);
+        }
+
+        private static void SetTranslation(Category category, int languageId, string name)
+        {
+            var translation = category.Translations.FirstOrDefault(t => t.LanguageId == languageId);
+            if (translation == null)
+            {
+                translation = new CategoryTranslation { LanguageId = languageId };
+                category.Translations.Add(translation);
+            }
+
+            translation.Name = name.Trim();
+        }
+
         public static CategoryDetailsAdminDto ToAdminDetailsDto(this Category category, int arabicLanguageId, int englishLanguageId)
         {
             ArgumentNullException.ThrowIfNull(category);

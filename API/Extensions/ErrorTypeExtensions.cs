@@ -11,6 +11,7 @@ namespace API.Extensions
                 ErrorType.NotFound => StatusCodes.Status404NotFound,
                 ErrorType.InvalidCredentials => StatusCodes.Status401Unauthorized,
                 ErrorType.ConcurrencyConflict => StatusCodes.Status409Conflict,
+                ErrorType.Conflict => StatusCodes.Status409Conflict,
                 ErrorType.InsufficientStock => StatusCodes.Status400BadRequest,
                 ErrorType.ValidationError => StatusCodes.Status422UnprocessableEntity,
                 ErrorType.None => StatusCodes.Status200OK,

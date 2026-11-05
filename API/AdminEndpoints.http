@@ -1,6 +1,9 @@
 @API_HostAddress = http://localhost:5213
 @accessToken = replace-with-an-admin-or-owner-access-token
 @orderId = 1
+@categoryId = 1
+@colorId = 1
+@sizeId = 1
 
 ### Create a category with both translations. Returns 201 and a Location header.
 POST {{API_HostAddress}}/api/Categories/admin/create
@@ -35,6 +38,53 @@ Cookie: accessToken={{accessToken}}
   "sortOrder": 4,
   "isActive": true
 }
+
+### Update a category. PUT replaces all editable fields; both names are required.
+PUT {{API_HostAddress}}/api/Categories/admin/{{categoryId}}/edit
+Content-Type: application/json
+Cookie: accessToken={{accessToken}}
+
+{
+  "nameAr": "قمصان",
+  "nameEn": "Updated shirts",
+  "isActive": true
+}
+
+### Permanently delete an unused category; linked products (including deleted ones) return 409.
+DELETE {{API_HostAddress}}/api/Categories/admin/{{categoryId}}/delete
+Cookie: accessToken={{accessToken}}
+
+### Update a color. The body ID is optional; if supplied, it must match the route ID.
+PUT {{API_HostAddress}}/api/Colors/admin/{{colorId}}/edit
+Content-Type: application/json
+Cookie: accessToken={{accessToken}}
+
+{
+  "nameAr": "أزرق",
+  "nameEn": "Updated blue",
+  "hexCode": "#0000FF",
+  "isActive": true
+}
+
+### Permanently delete an unused color; linked variants return 409.
+DELETE {{API_HostAddress}}/api/Colors/admin/{{colorId}}/delete
+Cookie: accessToken={{accessToken}}
+
+### Update a size.
+PUT {{API_HostAddress}}/api/Sizes/admin/{{sizeId}}/edit
+Content-Type: application/json
+Cookie: accessToken={{accessToken}}
+
+{
+  "name": "XL",
+  "sortOrder": 8,
+  "isActive": true
+}
+
+### Permanently delete an unused size; linked variants return 409.
+### All six update/delete endpoints require Admin or Owner; missing records return 404.
+DELETE {{API_HostAddress}}/api/Sizes/admin/{{sizeId}}/delete
+Cookie: accessToken={{accessToken}}
 
 ### Orders across all customers, newest first. Page size defaults to 12; maximum 100.
 ### Returns items, totalCount, pageNumber, pageSize and totalPages.
