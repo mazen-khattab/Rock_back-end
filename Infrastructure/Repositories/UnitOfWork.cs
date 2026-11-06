@@ -1,5 +1,6 @@
 ﻿using Core.Interfaces;
 using Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
@@ -22,6 +23,14 @@ namespace Infrastructure.Repositories
                 throw new InvalidOperationException("Transaction already started");
             }
             _transaction = await _context.Database.BeginTransactionAsync();
+        }
+
+        public async Task BeginTransactionAsync(System.Data.IsolationLevel isolationLevel)
+        {
+            if (_transaction != null)
+                throw new InvalidOperationException("Transaction already started");
+
+            _transaction = await _context.Database.BeginTransactionAsync(isolationLevel);
         }
 
         public async Task CommitAsync()

@@ -53,9 +53,16 @@ namespace Tests
                     services.AddScoped<IColorService, ColorService>();
                     services.AddScoped<ISizeService, SizeService>();
                     services.AddScoped<IOrderService, OrderService>();
+                    services.AddScoped<IAccountRepository, AccountRepository>();
+                    services.AddScoped<IAccountManagementService, AccountManagementService>();
+                    services.AddScoped<IUserServices, UserServices>();
                     services.AddSingleton(Mock.Of<ICartService>());
                     services.AddSingleton(Mock.Of<IAuthService>());
-                    services.AddIdentityCore<User>().AddEntityFrameworkStores<AppDbContext>();
+                    services.AddIdentityCore<User>(options =>
+                    {
+                        options.Password.RequiredLength = 4;
+                        options.Password.RequireNonAlphanumeric = true;
+                    }).AddRoles<Role>().AddEntityFrameworkStores<AppDbContext>();
                     services.AddAuthentication("Test").AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>("Test", _ => { });
                     services.AddAuthorization();
                     services.AddControllers().AddApplicationPart(typeof(OrdersController).Assembly);
@@ -109,10 +116,10 @@ namespace Tests
             // Follow Location through new requests so translations must be loaded from storage.
             _client.DefaultRequestHeaders.Add("Accept-Language", "en");
             var details = await ReadJson(await _client.GetAsync(response.Headers.Location));
-            Assert.Equal("English", details.GetProperty("data").GetProperty("name").GetString());
+            AssertBilingualNames(details.GetProperty("data"), "عربي", "English");
             _client.DefaultRequestHeaders.Remove("Accept-Language");
             details = await ReadJson(await _client.GetAsync(response.Headers.Location));
-            Assert.Equal("عربي", details.GetProperty("data").GetProperty("name").GetString());
+            AssertBilingualNames(details.GetProperty("data"), "عربي", "English");
             Assert.True(details.GetProperty("data").GetProperty("isActive").GetBoolean());
 
             using var scope = _host.Services.CreateScope();
@@ -423,7 +430,7 @@ namespace Tests
 
                 var identity = new ClaimsIdentity(new[]
                 {
-                    new Claim(ClaimTypes.NameIdentifier, "1"),
+                    new Claim(ClaimTypes.NameIdentifier, Request.Headers["X-Test-UserId"].FirstOrDefault() ?? "1"),
                     new Claim(ClaimTypes.Role, role.ToString())
                 }, Scheme.Name);
                 return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(identity), Scheme.Name)));

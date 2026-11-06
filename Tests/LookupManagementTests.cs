@@ -57,7 +57,10 @@ namespace Tests
 
             // Read through a separate request to verify persistence, not only an in-memory DTO.
             var details = await ReadJson(await _client.GetAsync($"/api/{resource}/{id}"));
-            Assert.Equal(resource == "Sizes" ? "XL" : "Updated Arabic", details.GetProperty("data").GetProperty("name").GetString());
+            if (resource == "Sizes")
+                Assert.Equal("XL", details.GetProperty("data").GetProperty("name").GetString());
+            else
+                AssertBilingualNames(details.GetProperty("data"), "Updated Arabic", "Updated English");
             Assert.False(details.GetProperty("data").GetProperty("isActive").GetBoolean());
             using var checkScope = _host.Services.CreateScope();
             var checkDb = checkScope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -264,7 +267,6 @@ namespace Tests
         public async Task MissingLanguagePreventsPartialLookupUpdate(string resource)
         {
             int id = await CreateLookup(resource);
-            string before = await _client.GetStringAsync($"/api/{resource}/{id}");
             using (var scope = _host.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -273,6 +275,7 @@ namespace Tests
                 await db.Languages.Where(l => l.Id == 9).ExecuteDeleteAsync();
             }
 
+            string before = await _client.GetStringAsync($"/api/{resource}/{id}");
             var response = await _client.PutAsJsonAsync($"/api/{resource}/admin/{id}/edit", LookupPayload(resource, updated: true));
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
             Assert.Equal(before, await _client.GetStringAsync($"/api/{resource}/{id}"));

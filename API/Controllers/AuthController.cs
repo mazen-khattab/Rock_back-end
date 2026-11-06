@@ -1,19 +1,15 @@
-﻿using Application.DTOs;
+using API.Extensions;
+using Application.DTOs;
 using Application.Interfaces;
 using Application.Responses;
-using Azure.Core;
 using Core.Entities;
+using Core.Enum;
 using Core.Interfaces;
 using Core.Settings;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
-using System.Data;
-using System.Security.Claims;
 
 namespace API.Controllers
 {
@@ -21,13 +17,14 @@ namespace API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        readonly IAuthService _authService;
-        readonly IServices<RefreshToken> _refreshToken;
-        readonly UserManager<User> _userManager;
-        readonly ILogger<AuthController> _logger;
-        readonly JwtSettings _jwtSettings;
+        private readonly IAuthService _authService;
+        private readonly IServices<RefreshToken> _refreshToken;
+        private readonly UserManager<User> _userManager;
+        private readonly ILogger<AuthController> _logger;
+        private readonly JwtSettings _jwtSettings;
 
-        public AuthController(IAuthService authService, UserManager<User> userManager, ILogger<AuthController> logger, IOptions<JwtSettings> jwtSettings, IServices<RefreshToken> refreshToken)
+        public AuthController(IAuthService authService, UserManager<User> userManager, ILogger<AuthController> logger,
+            IOptions<JwtSettings> jwtSettings, IServices<RefreshToken> refreshToken)
         {
             _authService = authService;
             _userManager = userManager;
@@ -36,296 +33,103 @@ namespace API.Controllers
             _refreshToken = refreshToken;
         }
 
-
-        private void GenerateCookies(AuthServiceResponse response)
-        {
-            _logger.LogInformation("Generating cookies for Access and Refresh tokens...");
-
-            try
-            {
-                var accessCookieOptions = new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.None,
-                    Expires = DateTime.Now.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes) // Access Token Expiry
-                };
-
-                var refreshCookieOptions = new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.None,
-                    Expires = DateTime.Now.AddDays(_jwtSettings.RefreshTokenExpirationDays) // Refresh Token Expiry
-                };
-
-                Response.Cookies.Append("accessToken", response.AccessToken, accessCookieOptions);
-                Response.Cookies.Append("refreshToken", response.RefreshToken, refreshCookieOptions);
-
-                _logger.LogInformation("Cookies generated and appended successfully.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Something went wrong while generating the cookies.");
-            }
-        }
-
-        private ApiResponse<UserInfoDto> GetUserInfo(string message, User user, List<string> role)
-        {
-            return new ApiResponse<UserInfoDto>
-            {
-                IsSuccess = true,
-                Message = "Login successful",
-                Data = new UserInfoDto
-                {
-                    UserId = user.Id,
-                    UserName = user.Fname[0..1].ToUpper() + user.Lname[0..1].ToUpper(),
-                    Role = role.ToList()
-                }
-            };
-        }
-
-        [HttpPost]
-        [Route("Login")]
+        [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginDto request)
         {
-            AuthServiceResponse result = await _authService.Login(request);
+            _logger.LogInformation("Login requested");
+            var result = await _authService.Login(request);
+            if (result?.IsSuccess != true)
+                return this.ToApiResult<UserInfoDto>(result);
 
-            if (result is not null && result.IsSuccess)
-            {
-                GenerateCookies(result);
-
-                User? user = await _userManager.FindByEmailAsync(request.Email);
-                var role = await _userManager.GetRolesAsync(user);
-
-                _logger.LogInformation("User Login successful ");
-
-                return Ok(GetUserInfo("Login successful", user, role.ToList()));
-            }
-
-            var errorResponse = new ApiErrorResponse
-            {
-                IsSuccess = false,
-                StatusCode = StatusCodes.Status400BadRequest,
-                Message = result?.Message ?? "Failed to login.",
-                Path = "api/Auth/Login",
-                Method = HttpMethods.Post,
-                TraceId = HttpContext.TraceIdentifier
-            };
-
-            _logger.LogWarning("Returning error response with StatusCode: {StatusCode}, Message: {Message}", errorResponse.StatusCode, errorResponse.Message);
-
-            return BadRequest(errorResponse);
+            return await CompleteAuthentication(result, await _userManager.FindByEmailAsync(request.Email));
         }
 
-        [HttpPost]
-        [Route("Register")]
+        [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto request)
         {
-            AuthServiceResponse result = await _authService.Register(request);
+            _logger.LogInformation("Registration requested");
+            var result = await _authService.Register(request);
+            if (result?.IsSuccess != true)
+                return this.ToApiResult<UserInfoDto>(result);
 
-            if (result is not null && result.IsSuccess)
-            {
-                GenerateCookies(result);
-
-                User? user = await _userManager.FindByEmailAsync(request.Email);
-                var role = await _userManager.GetRolesAsync(user);
-
-                return Ok(GetUserInfo("Register successful", user, role.ToList()));
-            }
-
-            var errorResponse = new ApiErrorResponse
-            {
-                IsSuccess = false,
-                StatusCode = StatusCodes.Status400BadRequest,
-                Message = result?.Message ?? "Failed to Register.",
-                Path = "api/Auth/Register",
-                Method = HttpMethods.Post,
-                TraceId = HttpContext.TraceIdentifier
-            };
-
-            _logger.LogWarning("Returning error response with StatusCode: {StatusCode}, Message: {Message}", errorResponse.StatusCode, errorResponse.Message);
-
-            return BadRequest(errorResponse);
+            return await CompleteAuthentication(result, await _userManager.FindByEmailAsync(request.Email));
         }
 
-        [HttpPost]
-        [Route("Refresh")]
+        [HttpPost("Refresh")]
         public async Task<IActionResult> Refresh()
         {
             string? refreshToken = Request.Cookies["refreshToken"];
-
             if (string.IsNullOrWhiteSpace(refreshToken))
-            {
-                _logger.LogInformation("Refresh token does not exist in cookies");
-                return Unauthorized("Refresh token does not exist in cookies");
-            }
+                return this.ToApiResult(new ApiResponse<UserInfoDto>
+                {
+                    ErrorType = ErrorType.InvalidCredentials,
+                    Message = "Refresh token does not exist in cookies."
+                });
 
+            _logger.LogInformation("Token refresh requested");
             var result = await _authService.ValidateRefreshToken(refreshToken);
+            if (result?.IsSuccess != true)
+                return this.ToApiResult<UserInfoDto>(result, failureStatusCode: StatusCodes.Status401Unauthorized);
 
-            if (result is not null && result.IsSuccess)
-            {
-                GenerateCookies(result);
-
-                _logger.LogInformation("Tokens refreshed successfully\n");
-
-                RefreshToken? token = await _refreshToken.GetAsync(rt => rt.Token == refreshToken, true, rt => rt.User);
-
-                var roles = await _userManager.GetRolesAsync(token?.User);
-
-                return Ok(GetUserInfo("Tokens refreshed", token.User, roles.ToList()));
-
-            }
-
-            _logger.LogInformation("Invalid refresh token!\n");
-            var errorResponse = new ApiErrorResponse
-            {
-                IsSuccess = false,
-                StatusCode = StatusCodes.Status401Unauthorized,
-                Message = result?.Message ?? "Failed to Refresh.",
-                Path = "api/Auth/Refresh",
-                Method = HttpMethods.Post,
-                TraceId = HttpContext.TraceIdentifier
-            };
-
-            _logger.LogWarning("Returning error response with StatusCode: {StatusCode}, Message: {Message}", errorResponse.StatusCode, errorResponse.Message);
-
-            return Unauthorized(errorResponse);
+            var token = await _refreshToken.GetAsync(rt => rt.Token == refreshToken, true, rt => rt.User);
+            return await CompleteAuthentication(result, token?.User);
         }
 
-        [HttpGet]
-        [Route("UserInfo")]
+        [HttpGet("UserInfo")]
         [Authorize]
         public async Task<IActionResult> GetUserInfo()
         {
-            _logger.LogInformation("[AuthController] Attempting to retrieve user info from token claims...");
-
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                _logger.LogWarning("[AuthController] Failed to retrieve UserInfo: User ID claim is missing or empty.");
-                var errorResponse = new ApiErrorResponse
-                {
-                    IsSuccess = false,
-                    StatusCode = StatusCodes.Status401Unauthorized,
-                    Message = "Failed to retrieve UserInfo",
-                    Path = "api/Auth/UserInfo",
-                    Method = HttpMethods.Get,
-                    TraceId = HttpContext.TraceIdentifier
-                };
-
-                _logger.LogWarning("Returning error response with StatusCode: {StatusCode}, Message: {Message}", errorResponse.StatusCode, errorResponse.Message);
-
-                return Unauthorized(errorResponse);
-            }
-
-            var result = await _authService.GetUserInfoAsync(userId);
-
-            if (!result.IsSuccess)
-            {
-                _logger.LogWarning("[AuthController] Failed to process UserInfo: Service returned null for UserId: {UserId}", userId);
-                var errorResponse = new ApiErrorResponse
-                {
-                    IsSuccess = false,
-                    StatusCode = StatusCodes.Status401Unauthorized,
-                    Message = result?.Message ?? "Failed to process UserInfo",
-                    Path = "api/Auth/UserInfo",
-                    Method = HttpMethods.Get,
-                    TraceId = HttpContext.TraceIdentifier
-                };
-
-                _logger.LogWarning("Returning error response with StatusCode: {StatusCode}, Message: {Message}", errorResponse.StatusCode, errorResponse.Message);
-
-                return Unauthorized(errorResponse);
-            }
-
-            _logger.LogInformation("[AuthController] Successfully processed UserInfo request for UserId: {UserId}", userId);
-
-            return Ok(new ApiResponse<UserInfoDto>
-            {
-                IsSuccess = true,
-                Message = "User retrieved successfully",
-                Data = result.Data
-            });
+            int userId = User.GetRequiredUserId();
+            _logger.LogInformation("User information requested for ID: {UserId}", userId);
+            return this.ToApiResult(await _authService.GetUserInfoAsync(userId.ToString()));
         }
 
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            _logger.LogInformation("[AuthController] Attempting to logout user...");
-
+            _logger.LogInformation("Logout requested");
             string? refreshToken = Request.Cookies["refreshToken"];
-
             if (!string.IsNullOrWhiteSpace(refreshToken))
             {
                 var result = await _authService.Logout(refreshToken);
-
-                if (!result.IsSuccess)
-                {
-                    _logger.LogWarning("[AuthController] Logout Service Warning: {Message}", result.Message);
-                }
-            }
-            else
-            {
-                _logger.LogInformation("[AuthController] No refresh token in cookies. Proceeding to clear local cookies.");
+                if (result?.IsSuccess == false)
+                    _logger.LogWarning("Logout service reported: {Message}", result.Message);
             }
 
-            var deleteCookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                IsEssential = true
-            };
-
-            Response.Cookies.Delete("accessToken", deleteCookieOptions);
-            Response.Cookies.Delete("refreshToken", deleteCookieOptions);
-
-            _logger.LogInformation("[AuthController] User logged out successfully and cookies cleared.");
-
-            return Ok(new ApiResponse<string>
-            {
-                IsSuccess = true,
-                Message = "Logged out successfully"
-            });
+            // Clear local cookies even if the refresh token is already invalid.
+            Response.ClearAuthenticationCookies();
+            return this.ToApiResult(new ApiResponse<string> { IsSuccess = true, Message = "Logged out successfully" });
         }
 
-        [HttpPost]
-        [Route("assign-role")]
-        [Authorize(Roles = "Admin")]
+        [HttpPost("assign-role")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> AssignRole([FromBody] UpdatePermissionDto request)
         {
-            _logger.LogInformation("Attempting to assign role. Role: {Role}, TargetUser: {TargetUser}", request.Role, request.UserId);
-
-            var result = await _authService.AssignRoleAsync(request);
-
-            if (result is not null && result.IsSuccess)
-            {
-                _logger.LogInformation("Role '{Role}' assigned successfully to user '{TargetUser}'", request.Role, request.UserId);
-
-                return Ok(new ApiResponse<string>
-                {
-                    IsSuccess = true,
-                    Message = result.Message,
-                    Data = request.Role
-                });
-            }
-
-            var errorResponse = new ApiErrorResponse
-            {
-                IsSuccess = false,
-                StatusCode = StatusCodes.Status400BadRequest,
-                Message = result?.Message ?? "Failed to assign role.",
-                Path = "api/Auth/assign-role",
-                Method = HttpMethods.Post,
-                TraceId = HttpContext.TraceIdentifier
-            };
-
-            _logger.LogWarning("Failed to assign role '{Role}' to user '{TargetUser}'. Returning error response with StatusCode: {StatusCode}, Message: {Message}",
-                request.Role, request.UserId, errorResponse.StatusCode, errorResponse.Message);
-
-            return BadRequest(errorResponse);
+            _logger.LogInformation("Role assignment requested for user ID: {UserId}, role: {Role}", request.UserId, request.Role);
+            return this.ToApiResult(await _authService.AssignRoleAsync(request), request.Role);
         }
+
+        private async Task<IActionResult> CompleteAuthentication(AuthServiceResponse result, User? user)
+        {
+            if (user == null)
+                return this.ToApiResult(new ApiResponse<UserInfoDto>
+                {
+                    ErrorType = ErrorType.InvalidCredentials,
+                    Message = "The account is no longer available."
+                });
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var userInfo = new UserInfoDto
+            {
+                UserId = user.Id,
+                UserName = Initial(user.Fname) + Initial(user.Lname),
+                Role = roles.ToList()
+            };
+            Response.SetAuthenticationCookies(result, _jwtSettings);
+            _logger.LogInformation("Authentication completed for user ID: {UserId}", user.Id);
+            return this.ToApiResult(result, userInfo);
+        }
+
+        private static string Initial(string name) => string.IsNullOrEmpty(name) ? string.Empty : name[..1].ToUpperInvariant();
     }
 }

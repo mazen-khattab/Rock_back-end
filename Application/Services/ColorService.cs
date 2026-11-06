@@ -114,32 +114,30 @@ namespace Application.Services
                 "Color cannot be deleted because it is used by product variants.");
         #endregion
 
-        public async Task<ApiResponse<(IEnumerable<ColorDto> Items, int TotalCount)>> GetAll(string langCode)
+        public async Task<ApiResponse<(IEnumerable<ColorDto> Items, int TotalCount)>> GetAll()
         {
-            int langId = await GetLanguageId(langCode);
+            _logger.LogInformation("GetAll colors requested with Arabic and English names");
 
-            _logger.LogInformation("GetAll colors requested for language ID: {LangId}", langId);
+            var query = Query(tracked: false);
+            int totalCount = await query.CountAsync();
+            var items = await query.OrderBy(c => c.Id).Take(12).ProjectToDto().ToListAsync();
 
-            var (items, totalCount) = await GetPagedAsync(includes: c => c.Translations.Where(t => t.LanguageId == langId));
-            _logger.LogInformation("Successfully retrieved {Count} colors for language ID: {LangId}", items.Count(), langId);
-
-            var colorDtos = items.ToDtoList(langId);
+            _logger.LogInformation("Retrieved {Count} colors out of {TotalCount} with both names", items.Count, totalCount);
 
             return new()
             {
                 IsSuccess = true,
-                Data = (colorDtos, totalCount),
+                Data = (items, totalCount),
                 Message = "Colors retrieved successfully."
             };
         }
 
-        public async Task<ApiResponse<ColorDetailsDto>> GetById(int colorId, string langCode)
+        public async Task<ApiResponse<ColorDetailsDto>> GetById(int colorId)
         {
-            int langId = await GetLanguageId(langCode);
+            _logger.LogInformation("GetColorById requested for ID: {ColorId} with Arabic and English names", colorId);
 
-            _logger.LogInformation("GetColorById requested for ColorID: {ColorId}, LanguageID: {LangId}", colorId, langId);
-
-            var color = await GetByIdAsync(colorId, c => c.Translations.Where(l => l.LanguageId == langId));
+            var color = await Query(c => c.Id == colorId, tracked: false)
+                .ProjectToDetailsDto().FirstOrDefaultAsync();
 
             if (color == null)
             {
@@ -152,14 +150,12 @@ namespace Application.Services
                     Message = "Color not found."
                 };
             }
-            _logger.LogInformation("Successfully retrieved color ID: {ColorId} with filtered translation for LanguageID: {LangId}", colorId, langId);
-
-            var colorDetailsDto = color.ToDetailsDto(langId);
+            _logger.LogInformation("Retrieved color ID: {ColorId} with both names", colorId);
 
             return new()
             {
                 IsSuccess = true,
-                Data = colorDetailsDto,
+                Data = color,
                 Message = "Color retrieved successfully.",
             };
         }

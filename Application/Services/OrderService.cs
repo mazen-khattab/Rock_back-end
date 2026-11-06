@@ -630,7 +630,7 @@ namespace Application.Services
             }
 
             // Retrieve user cart items
-            var userCart = await _cartServices.FetchCartWithDetailsAsync(userId, 1);
+            var userCart = await _cartServices.FetchCartWithDetailsAsync(userId, 1, true);
 
             //if (!userCart.IsSuccess)
             //{

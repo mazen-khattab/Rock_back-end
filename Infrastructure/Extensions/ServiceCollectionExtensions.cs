@@ -34,6 +34,8 @@ namespace Infrastructure.Extensions
             services.AddScoped(typeof(IEmailService), typeof(SmtpEmailService));
             services.AddScoped(typeof(IContactUsService), typeof(ContactUsService));
             services.AddScoped(typeof(IUserServices), typeof(UserServices));
+            services.AddScoped<IAccountRepository, AccountRepository>();
+            services.AddScoped<IAccountManagementService, AccountManagementService>();
             services.AddScoped(typeof(ICategoryService), typeof(CategoryService));
             services.AddScoped(typeof(ISizeService), typeof(SizeService));
             services.AddScoped(typeof(IColorService), typeof(ColorService));

@@ -19,7 +19,7 @@ namespace Application.Interfaces
         /// An <see cref="ApiResponse{T}"/> containing a collection of CartDto representing the user's cart items.
         /// </returns>
         Task<ApiResponse<IEnumerable<CartDto>>> GetUserCart(int userId, string langCode, string baseUrl);
-        Task<IEnumerable<UserCart>> FetchCartWithDetailsAsync(int userId, int langId);
+        Task<IEnumerable<UserCart>> FetchCartWithDetailsAsync(int userId, int langId, bool track = false);
 
         /// <summary>
         /// Adds a product variant to the authenticated user's cart.
