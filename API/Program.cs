@@ -1,4 +1,5 @@
 using API.Middleware;
+using API.Extensions;
 using Application.Interfaces;
 using Core.Entities;
 using Core.Settings;
@@ -73,7 +74,8 @@ builder.Services.AddAuthentication(options =>
             {
                 context.Token = context.Request.Cookies["accessToken"];
                 return Task.CompletedTask;
-            }
+            },
+            OnTokenValidated = AccountTokenValidation.ValidateAsync
         };
 
         options.SaveToken = false;

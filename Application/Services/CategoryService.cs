@@ -23,7 +23,6 @@ namespace Application.Services
             _langServices = langServices;
         }
 
-
         private int GetLanguageId(string langCode)
         {
             _logger.LogInformation("Retrieving language ID for language code: {LangCode}", langCode);
@@ -116,64 +115,51 @@ namespace Application.Services
         #endregion
 
         #region GetAll Method
-        public async Task<ApiResponse<(IEnumerable<CategoryDto> Items, int TotalCount)>> GetAll(string langCode)
+        public async Task<ApiResponse<(IEnumerable<CategoryDto> Items, int TotalCount)>> GetAll()
         {
-            int langId = GetLanguageId(langCode);
+            _logger.LogInformation("GetAll categories requested with Arabic and English names");
 
-            _logger.LogInformation("GetAll categories requested for language ID: {LangId}", langId);
+            var query = Query(tracked: false);
+            int totalCount = await query.CountAsync();
+            // Match the page size exposed by the existing controller response.
+            var items = await query.OrderBy(c => c.Id).Take(12).ProjectToDto().ToListAsync();
 
-            var (items, totalCount) = await FetchAllCategoriesAsync(langId);
-            _logger.LogInformation("Successfully retrieved {Count} categories for language ID: {LangId}", totalCount, langId);
-
-            var itemsDto = items.ToDtoList(langId) ?? new();
+            _logger.LogInformation("Retrieved {Count} categories out of {TotalCount} with both names", items.Count, totalCount);
 
             return new()
             {
                 IsSuccess = true,
-                Data = (itemsDto, totalCount),
+                Data = (items, totalCount),
                 Message = "Categories retrieved successfully."
             };
         }
 
-        public async Task<(IEnumerable<Category>, int)> FetchAllCategoriesAsync(int langId)
-        {
-            _logger.LogDebug("Fetching all categories from database for language ID: {LangId}", langId);
-            return await GetPagedAsync(includes: c => c.Translations.Where(t => t.LanguageId == langId));
-        }
         #endregion
 
         #region GetById Method
-        public async Task<ApiResponse<CategoryDetailsDto>> GetById(int categoryId, string langCode)
+        public async Task<ApiResponse<CategoryDetailsDto>> GetById(int categoryId)
         {
-            int langId = GetLanguageId(langCode);
+            _logger.LogInformation("GetCategoryById requested for ID: {CategoryId} with Arabic and English names", categoryId);
 
-            _logger.LogInformation("GetCategoryById requested for CategoryID: {CategoryId}, LanguageID: {LangId}", categoryId, langId);
+            var category = await Query(c => c.Id == categoryId, tracked: false)
+                .ProjectToDetailsDto().FirstOrDefaultAsync();
 
-            var category = await FetchCategoryByIdAsync(categoryId, langId);
-
-                if (category == null)
+            if (category == null)
             {
                 _logger.LogWarning("Category with ID: {CategoryId} was not found.", categoryId);
                 return new() { IsSuccess = false, ErrorType = ErrorType.NotFound, Message = "Category not found." };
             }
 
-            _logger.LogInformation("Successfully retrieved category ID: {CategoryId} with filtered translation for LanguageID: {LangId}", category.Id, langId);
-
-            var categoryDetailsDto = category.ToDetailsDto(langId) ?? new();
+            _logger.LogInformation("Retrieved category ID: {CategoryId} with both names", categoryId);
 
             return new()
             {
                 IsSuccess = true,
-                Data = categoryDetailsDto,
+                Data = category,
                 Message = "Category retrieved successfully."
             };
         }
 
-        public async Task<Category?> FetchCategoryByIdAsync(int categoryId, int langId)
-        {
-            _logger.LogDebug("Fetching category {CategoryId} from database for language ID: {LangId}", categoryId, langId);
-            return await GetByIdAsync(categoryId, c => c.Translations.Where(l => l.LanguageId == langId));
-        }
         #endregion
 
         #region Lookup Method

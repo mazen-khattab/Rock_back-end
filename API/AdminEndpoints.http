@@ -5,6 +5,19 @@
 @colorId = 1
 @sizeId = 1
 
+### Category and color list/details responses return nameAr and nameEn together.
+### Accept-Language does not change which names these endpoints return.
+GET {{API_HostAddress}}/api/Categories
+
+### Category details with both names.
+GET {{API_HostAddress}}/api/Categories/{{categoryId}}
+
+### Color list with both names, hexCode and isActive.
+GET {{API_HostAddress}}/api/Colors
+
+### Color details with both names.
+GET {{API_HostAddress}}/api/Colors/{{colorId}}
+
 ### Create a category with both translations. Returns 201 and a Location header.
 POST {{API_HostAddress}}/api/Categories/admin/create
 Content-Type: application/json

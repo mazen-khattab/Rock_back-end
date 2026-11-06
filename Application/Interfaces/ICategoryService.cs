@@ -11,10 +11,8 @@ namespace Application.Interfaces
         Task<ApiResponse<CategoryDetailsAdminDto>> CreateCategory(CategoryDetailsAdminDto dto);
         Task<ApiResponse<CategoryDetailsAdminDto>> UpdateCategory(int id, CategoryDetailsAdminDto dto);
         Task<ApiResponse<int>> DeleteCategory(int id);
-        Task<ApiResponse<(IEnumerable<CategoryDto> Items, int TotalCount)>> GetAll(string langCode);
-        Task<(IEnumerable<Category>, int)> FetchAllCategoriesAsync(int langId);
-        Task<ApiResponse<CategoryDetailsDto>> GetById(int categoryId, string langCode);
-        Task<Category?> FetchCategoryByIdAsync(int categoryId, int langId);
+        Task<ApiResponse<(IEnumerable<CategoryDto> Items, int TotalCount)>> GetAll();
+        Task<ApiResponse<CategoryDetailsDto>> GetById(int categoryId);
         Task<ApiResponse<IEnumerable<CategoryLookupDto>>> Lookup(string langCode);
     }
 }

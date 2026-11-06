@@ -1,0 +1,98 @@
+@API_HostAddress = http://localhost:5213
+@ownerAccessToken = replace-with-owner-access-token
+@adminAccessToken = replace-with-admin-access-token
+@staffId = 2
+@customerId = 3
+@initialPassword = Example1!ChangeMe
+
+### Staff lists/details allow Admin or Owner. Only Admin/Owner account records are returned.
+### Lists support pageNumber (default 1), pageSize (default 12, maximum 100), and search.
+GET {{API_HostAddress}}/api/Users/admin?pageNumber=1&pageSize=12&search=
+Cookie: accessToken={{ownerAccessToken}}
+
+### Staff details. Responses expose profile, roles, dates and orderCount, without Identity secrets.
+GET {{API_HostAddress}}/api/Users/admin/{{staffId}}
+Cookie: accessToken={{ownerAccessToken}}
+
+### Create staff: Owner only. Supports Admin, Owner, or both roles.
+### Returns 201 with a Location header; the caller's login cookies are preserved.
+POST {{API_HostAddress}}/api/Users/admin/create
+Content-Type: application/json
+Cookie: accessToken={{ownerAccessToken}}
+
+{
+  "firstName": "Staff",
+  "lastName": "Account",
+  "email": "staff@example.com",
+  "phone": "01011111111",
+  "password": "{{initialPassword}}",
+  "confirmPassword": "{{initialPassword}}",
+  "roles": ["Admin"]
+}
+
+### Update staff: Owner only. Omit roles to preserve the account's current roles.
+### Role changes revoke refresh tokens; JWTs with old role claims require a new login.
+### Removing your own Owner role is rejected.
+PUT {{API_HostAddress}}/api/Users/admin/{{staffId}}/edit
+Content-Type: application/json
+Cookie: accessToken={{ownerAccessToken}}
+
+{
+  "firstName": "Updated",
+  "lastName": "Staff",
+  "email": "staff@example.com",
+  "phone": "01011111111",
+  "governorate": "Cairo",
+  "city": "Cairo",
+  "fullAddress": "Example address",
+  "roles": ["Admin"]
+}
+
+### Delete staff: Owner only. Self-deletion is rejected.
+### Any order, including a soft-deleted order, returns 409 without changing the account.
+### Orderless accounts are permanently deleted; other historical foreign-key references remain protected.
+DELETE {{API_HostAddress}}/api/Users/admin/{{staffId}}/delete
+Cookie: accessToken={{ownerAccessToken}}
+
+### All customer endpoints require Admin. An Owner without Admin cannot access them.
+### Customers have User and neither Admin nor Owner; the seeded mixed-role owner is excluded.
+GET {{API_HostAddress}}/api/Customers?pageNumber=1&pageSize=12
+Cookie: accessToken={{adminAccessToken}}
+
+### View one customer.
+GET {{API_HostAddress}}/api/Customers/{{customerId}}
+Cookie: accessToken={{adminAccessToken}}
+
+### Create a customer with the User role. Roles cannot be supplied in customer requests.
+POST {{API_HostAddress}}/api/Customers/create
+Content-Type: application/json
+Cookie: accessToken={{adminAccessToken}}
+
+{
+  "firstName": "New",
+  "lastName": "Customer",
+  "email": "customer@example.com",
+  "phone": "01022222222",
+  "password": "{{initialPassword}}",
+  "confirmPassword": "{{initialPassword}}"
+}
+
+### Update a customer's profile. Role and Identity-internal fields are rejected.
+PUT {{API_HostAddress}}/api/Customers/{{customerId}}/edit
+Content-Type: application/json
+Cookie: accessToken={{adminAccessToken}}
+
+{
+  "firstName": "Updated",
+  "lastName": "Customer",
+  "email": "customer@example.com",
+  "phone": "01022222222",
+  "governorate": "Cairo",
+  "city": "Cairo",
+  "fullAddress": "Example address"
+}
+
+### Permanently delete an orderless customer. All orders, including deleted ones, prevent deletion.
+### An ID outside the requested account group returns 404.
+DELETE {{API_HostAddress}}/api/Customers/{{customerId}}/delete
+Cookie: accessToken={{adminAccessToken}}

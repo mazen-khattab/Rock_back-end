@@ -52,11 +52,11 @@ namespace Application.Services
 
         // user methods
         #region GetUserCart
-        public async Task<IEnumerable<UserCart>> FetchCartWithDetailsAsync(int userId, int langId)
+        public async Task<IEnumerable<UserCart>> FetchCartWithDetailsAsync(int userId, int langId, bool track = false)
         {
             _logger.LogInformation("Fetching cart entities from DB for user {UserId} with Language ID {LangId}", userId, langId);
 
-            return await _userCartService.Query(c => c.UserId == userId, false)
+            return await _userCartService.Query(c => c.UserId == userId, track)
                 .Include(c => c.Variant)
                     .ThenInclude(v => v.Product)
                         .ThenInclude(p => p.Translations.Where(t => t.LanguageId == langId))
