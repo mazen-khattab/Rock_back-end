@@ -9,6 +9,7 @@ namespace Core.Interfaces
     {
         Task<int> SaveChangesAsync();
         Task BeginTransactionAsync();
+        Task BeginTransactionAsync(System.Data.IsolationLevel isolationLevel);
         Task CommitAsync();
         Task RollbackAsync();
         bool IsTransactionFinished();

@@ -1,8 +1,6 @@
-﻿using Application.DTOs;
+using API.Extensions;
+using Application.DTOs;
 using Application.Interfaces;
-using Application.Responses;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -20,35 +18,11 @@ namespace API.Controllers
             _contactUsService = contactUsService;
         }
 
-
-        [HttpPost]
-        [Route("ContactUs")]
+        [HttpPost("ContactUs")]
         public IActionResult ContactUs([FromBody] ContactUsDto contactUs)
         {
-            _logger.LogInformation("Calling contactUs endpoint from: {userName}", contactUs.Name);
-
-            var response = _contactUsService.ContactUs(contactUs);
-
-            if (response is not null && response.IsSuccess)
-            {
-                _logger.LogInformation("ContactUs request processed successfully for {Phone}", contactUs.Phone);
-                return Ok(response);
-            }
-
-            _logger.LogWarning("ContactUs service returned failure for {Phone}: {Message}",
-                contactUs.Phone, response?.Message ?? "");
-
-            var errorResponse = new ApiErrorResponse
-            {
-                IsSuccess = false,
-                StatusCode = StatusCodes.Status400BadRequest,
-                Message = response?.Message ?? "Failed to send email message.",
-                Path = "api/ContactUs",
-                Method = HttpMethods.Post,
-                TraceId = HttpContext.TraceIdentifier
-            };
-
-            return BadRequest(errorResponse);
+            _logger.LogInformation("Contact request received");
+            return this.ToApiResult(_contactUsService.ContactUs(contactUs));
         }
     }
 }

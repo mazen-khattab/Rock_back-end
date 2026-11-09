@@ -42,36 +42,30 @@ namespace Application.Mapping
             };
         }
 
-        public static ColorDto ToDto(this Color color, int languageId)
+        public static IQueryable<ColorDto> ProjectToDto(this IQueryable<Color> colors)
         {
-            ArgumentNullException.ThrowIfNull(color);
-
-            return new ColorDto
+            // Only select the fields returned by the API, without loading translation entities.
+            return colors.Select(color => new ColorDto
             {
                 Id = color.Id,
-                Name = color.Translations?.FirstOrDefault(t => t.LanguageId == languageId)?.Name ?? string.Empty,
+                NameAr = color.Translations.Where(t => t.Language.Code == "ar")
+                    .Select(t => t.Name).FirstOrDefault() ?? string.Empty,
+                NameEn = color.Translations.Where(t => t.Language.Code == "en")
+                    .Select(t => t.Name).FirstOrDefault() ?? string.Empty,
                 HexCode = color.HexCode,
-                IsActive = color.IsActive,
-            };
+                IsActive = color.IsActive
+            });
         }
 
-        public static ColorDetailsDto ToDetailsDto(this Color color, int languageId)
+        public static IQueryable<ColorDetailsDto> ProjectToDetailsDto(this IQueryable<Color> colors)
         {
-            ArgumentNullException.ThrowIfNull(color);
-
-            return new ColorDetailsDto
+            return colors.ProjectToDto().Select(color => new ColorDetailsDto
             {
-                Name = color.Translations?.FirstOrDefault(t => t.LanguageId == languageId)?.Name ?? string.Empty,
+                NameAr = color.NameAr,
+                NameEn = color.NameEn,
                 HexCode = color.HexCode,
-                IsActive = color.IsActive,
-            };
-        }
-
-        public static List<ColorDto> ToDtoList(this IEnumerable<Color> colors, int languageId)
-        {
-            ArgumentNullException.ThrowIfNull(colors);
-
-            return [.. colors.Select(c => c.ToDto(languageId))];
+                IsActive = color.IsActive
+            });
         }
 
         public static ColorLookupDto ToLookupDto(this Color lookup, int languageId)

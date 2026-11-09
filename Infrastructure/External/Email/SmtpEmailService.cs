@@ -7,10 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using QuestPDF.Fluent;
-using QuestPDF.Helpers;
-using QuestPDF.Infrastructure;
 using System;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -162,128 +159,11 @@ namespace Infrastructure.External.Email
 
         private byte[] CreateOrderPdf(EmailInfoDto job)
         {
-            var pdf = Document.Create(container =>
-            {
-                container.Page(page =>
-                {
-                    page.Margin(50);
-                    page.Size(PageSizes.A4);
-                    page.PageColor(Colors.White);
-
-                    page.Header().Row(row =>
-                    {
-                        var image = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", "Rock_logo.jpg");
-                        if (File.Exists(image))
-                        {
-                            row.ConstantItem(70).Image(image);
-                        }
-
-                        row.RelativeItem().AlignCenter().Text("Rock Store - Order Summary")
-                            .FontColor(Colors.Green.Darken4)
-                            .FontSize(22)
-                            .ExtraBold();
-                    });
-
-                    page.Content().Column(col =>
-                    {
-                        col.Spacing(8);
-
-                        // user info section
-                        col.Item().PaddingTop(40).Text("User Info:")
-                             .FontSize(16)
-                             .Bold()
-                             .FontColor(Colors.Green.Darken4);
-
-                        // name
-                        col.Item().Row(row =>
-                        {
-                            row.ConstantItem(60).Text("Name: ").ExtraBold();
-                            row.ConstantItem(350).Text($"{job.FName} {job.LName}");
-                        });
-
-                        // email
-                        col.Item().Row(row =>
-                        {
-                            row.ConstantItem(60).Text("Email: ").ExtraBold();
-                            row.ConstantItem(350).Text($"{job.Email}");
-                        });
-
-                        // phone
-                        col.Item().Row(row =>
-                        {
-                            row.ConstantItem(60).Text("Phone: ").ExtraBold();
-                            row.ConstantItem(350).Text($"{job.Phone}");
-                        });
-
-                        col.Item().PaddingTop(10).LineHorizontal(2).LineColor(Colors.Grey.Medium);
-
-                        // address section
-                        col.Item().PaddingTop(10).Text("Address:")
-                             .FontSize(16)
-                             .Bold()
-                             .FontColor(Colors.Green.Darken4);
-
-                        // Governorate
-                        col.Item().Row(row =>
-                        {
-                            row.ConstantItem(100).Text("Governorate: ").ExtraBold();
-                            row.ConstantItem(350).Text($"{job.Governorate}");
-                        });
-
-                        // City
-                        col.Item().Row(row =>
-                        {
-                            row.ConstantItem(100).Text("City: ").ExtraBold();
-                            row.ConstantItem(350).Text($"{job.City}");
-                        });
-
-                        // Address
-                        col.Item().Row(row =>
-                        {
-                            row.ConstantItem(100).Text("Address: ").ExtraBold();
-                            row.ConstantItem(350).Text($"{job.Address}");
-                        });
-
-                        // Notes
-                        col.Item().Row(row =>
-                        {
-                            row.ConstantItem(100).Text("Notes: ").ExtraBold();
-                            row.ConstantItem(350).Text($"{job.Notes}");
-                        });
-
-                        col.Item().PaddingTop(10).LineHorizontal(2).LineColor(Colors.Grey.Medium);
-
-                        col.Item().PaddingTop(10).Text("Order Items:")
-                            .FontSize(16)
-                            .Bold()
-                            .FontColor(Colors.Green.Darken4);
-
-                        foreach (var item in job.Items)
-                        {
-                            col.Item().Row(row =>
-                            {
-                                row.ConstantItem(30).Text($"{item.Quantity}").FontSize(15).Bold();
-                                row.AutoItem().Text($"{item.Name}  -  {item.Size}  -  {item.Color}").FontSize(14);
-                                row.ConstantItem(30).Text("").FontSize(14);
-                                row.ConstantItem(30).Text("*").FontSize(14);
-                                row.AutoItem().Text($"{item.Price}   = ").FontSize(14);
-                                row.RelativeItem().AlignRight().Text($"{item.Price * item.Quantity}").FontSize(14);
-                            });
-                        }
-
-                        col.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Medium);
-
-                        col.Item().AlignRight().Text($"Total Price: {job.TotalPrice}").Bold();
-                    });
-
-                    page.Footer().AlignCenter()
-                        .Text("Thank you for shopping at Rock")
-                        .FontSize(14)
-                        .FontColor(Colors.Green.Darken4);
-                });
-            });
-
-            return pdf.GeneratePdf();
+            _logger.LogInformation("Generating dark order PDF for order number: {OrderNumber}", job.OrderNumber);
+            var document = new OrderPdfDocument(job);
+            byte[] pdf = document.GeneratePdf();
+            _logger.LogInformation("Generated order PDF for order number: {OrderNumber}, size: {ByteCount} bytes", job.OrderNumber, pdf.Length);
+            return pdf;
         }
     }
 }

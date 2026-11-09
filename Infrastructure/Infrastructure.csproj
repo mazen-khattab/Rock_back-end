@@ -33,4 +33,10 @@
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Embed Arabic fonts so PDF generation also works in published deployments without OS fonts. -->
+    <EmbeddedResource Include="External\Email\Fonts\*.ttf" LogicalName="Rock.OrderPdf.Fonts.%(Filename)%(Extension)" />
+    <None Update="External\Email\Fonts\OFL.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

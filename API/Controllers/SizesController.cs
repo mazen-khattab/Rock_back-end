@@ -1,15 +1,9 @@
-﻿using Application.DTOs;
-using Application.Interfaces;
-using API.Extensions;
-using Microsoft.AspNetCore.Authorization;
-using Application.Mapping;
-using Application.Responses;
-using Core.Entities;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
+using API.Extensions;
+using Application.DTOs;
+using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
@@ -26,44 +20,23 @@ namespace API.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Creates a size with its display order and active state.
-        /// </summary>
         [HttpPost("admin/create")]
         [Authorize(Roles = "Admin,Owner")]
         public async Task<IActionResult> CreateSize([FromBody] SizeDetailsDto dto)
         {
-            _logger.LogInformation("HTTP POST request received for api/sizes/admin/create");
+            _logger.LogInformation("Size creation requested");
             var result = await _sizeService.CreateSize(dto);
-
-            if (result.IsSuccess)
-            {
-                _logger.LogInformation("Returning created size ID: {SizeId}", result.Data?.Id);
-                return CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result);
-            }
-
-            int statusCode = result.ErrorType.ToHttpStatusCode();
-            _logger.LogWarning("Size creation failed with StatusCode: {StatusCode}, Message: {Message}", statusCode, result.Message);
-            return StatusCode(statusCode, new ApiErrorResponse
-            {
-                StatusCode = statusCode,
-                Message = result.Message,
-                Path = Request.Path.Value ?? "api/Sizes/admin/create",
-                Method = HttpMethods.Post,
-                TraceId = HttpContext.TraceIdentifier
-            });
+            return result.IsSuccess
+                ? CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result)
+                : this.ToApiResult(result);
         }
 
-        /// <summary>
-        /// Updates a size's name, display order and active state.
-        /// </summary>
         [HttpPut("admin/{id:int}/edit")]
         [Authorize(Roles = "Admin,Owner")]
         public async Task<IActionResult> UpdateSize([Range(1, int.MaxValue)] int id, [FromBody] SizeDetailsDto dto)
         {
-            _logger.LogInformation("HTTP PUT request received for size ID: {SizeId}", id);
-            var result = await _sizeService.UpdateSize(id, dto);
-            return this.ToApiResult(result);
+            _logger.LogInformation("Size update requested for ID: {SizeId}", id);
+            return this.ToApiResult(await _sizeService.UpdateSize(id, dto));
         }
 
         /// <summary>
@@ -73,121 +46,29 @@ namespace API.Controllers
         [Authorize(Roles = "Admin,Owner")]
         public async Task<IActionResult> DeleteSize([Range(1, int.MaxValue)] int id)
         {
-            _logger.LogInformation("HTTP DELETE request received for size ID: {SizeId}", id);
-            var result = await _sizeService.DeleteSize(id);
-            return this.ToApiResult(result);
+            _logger.LogInformation("Size deletion requested for ID: {SizeId}", id);
+            return this.ToApiResult(await _sizeService.DeleteSize(id));
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            _logger.LogInformation("HTTP GET request received for api/sizes");
-
-            var result = await _sizeService.GetAll();
-
-            if (result is not null && result.IsSuccess)
-            {
-                var (items, totalCount) = result.Data;
-
-                _logger.LogInformation("Successfully mapped and returning {Count} sizes", totalCount);
-
-                return Ok(new
-                {
-                    items,
-                    totalCount,
-                    pageNumber = 1,
-                    pageSize = 12,
-                    totalPages = (int)Math.Ceiling(totalCount / (double)12)
-                });
-            }
-
-            _logger.LogWarning("Failed to retrieve sizes in controller. Message: {Msg}", result?.Message ?? "");
-
-            var errorResponse = new ApiErrorResponse
-            {
-                IsSuccess = false,
-                StatusCode = StatusCodes.Status400BadRequest,
-                Message = result?.Message ?? "Failed to retrieve sizes.",
-                Path = "api/Sizes",
-                Method = HttpMethods.Get,
-                TraceId = HttpContext.TraceIdentifier
-            };
-
-            _logger.LogWarning("Returning error response with StatusCode: {StatusCode}, Message: {Message}", errorResponse.StatusCode, errorResponse.Message);
-
-            return BadRequest(errorResponse);
+            _logger.LogInformation("Size list requested");
+            return this.ToPagedApiResult(await _sizeService.GetAll());
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            _logger.LogInformation("HTTP GET request received for api/sizes/{Id}", id);
-
-            var result = await _sizeService.GetById(id);
-
-            if (result is not null && result.IsSuccess)
-            {
-                var sizeDto = result.Data;
-
-                _logger.LogInformation("Successfully mapped and returning size ID: {Id}", id);
-
-                return Ok(new ApiResponse<SizeDetailsDto>
-                {
-                    IsSuccess = true,
-                    Data = sizeDto,
-                });
-            }
-
-            _logger.LogWarning("Size with ID: {Id} not found or failed to retrieve. Message: {Msg}", id, result?.Message ?? "");
-            var errorResponse = new ApiErrorResponse
-            {
-                IsSuccess = false,
-                StatusCode = StatusCodes.Status400BadRequest,
-                Message = result?.Message ?? "Failed to retrieve size with id.",
-                Path = "api/Sizes/{id}",
-                Method = HttpMethods.Get,
-                TraceId = HttpContext.TraceIdentifier
-            };
-
-            _logger.LogWarning("Returning error response with StatusCode: {StatusCode}, Message: {Message}", errorResponse.StatusCode, errorResponse.Message);
-
-            return BadRequest(errorResponse);
+            _logger.LogInformation("Size details requested for ID: {SizeId}", id);
+            return this.ToApiResult(await _sizeService.GetById(id));
         }
 
         [HttpGet("lookup")]
         public async Task<IActionResult> GetLookup()
         {
-            _logger.LogInformation("HTTP GET request received for api/sizes/lookup");
-
-            var result = await _sizeService.Lookup();
-
-            if (result is not null && result.IsSuccess)
-            {
-                var lookupDto = result.Data;
-
-                _logger.LogInformation("Successfully returning size lookups for dropdown.");
-
-                return Ok(new ApiResponse<IEnumerable<SizeLookupDto>>
-                {
-                    IsSuccess = true,
-                    Data = lookupDto,
-                });
-            }
-
-            _logger.LogWarning("Failed to retrieve size lookups. Message: {Msg}", result?.Message ?? "");
-            var errorResponse = new ApiErrorResponse
-            {
-                IsSuccess = false,
-                StatusCode = StatusCodes.Status400BadRequest,
-                Message = result?.Message ?? "Failed to retrieve size lookups.",
-                Path = "api/Sizes/lookup",
-                Method = HttpMethods.Get,
-                TraceId = HttpContext.TraceIdentifier
-            };
-
-            _logger.LogWarning("Returning error response with StatusCode: {StatusCode}, Message: {Message}", errorResponse.StatusCode, errorResponse.Message);
-
-            return BadRequest(errorResponse);
+            _logger.LogInformation("Size lookup requested");
+            return this.ToApiResult(await _sizeService.Lookup());
         }
     }
 }

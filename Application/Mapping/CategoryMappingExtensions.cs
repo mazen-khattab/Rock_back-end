@@ -40,40 +40,28 @@ namespace Application.Mapping
             };
         }
 
-        public static CategoryDto ToDto(this Category category, int languageId)
+        public static IQueryable<CategoryDto> ProjectToDto(this IQueryable<Category> categories)
         {
-            ArgumentNullException.ThrowIfNull(category);
-
-            string trasnlationName = category.Translations?.FirstOrDefault(t => t.LanguageId == languageId)?.Name ?? string.Empty;
-
-            return new CategoryDto()
+            // Project both names in SQL using language codes rather than fixed seed IDs.
+            return categories.Select(category => new CategoryDto
             {
                 Id = category.Id,
                 IsActive = category.IsActive,
-                Name = trasnlationName,
-            };
-
+                NameAr = category.Translations.Where(t => t.Language.Code == "ar")
+                    .Select(t => t.Name).FirstOrDefault() ?? string.Empty,
+                NameEn = category.Translations.Where(t => t.Language.Code == "en")
+                    .Select(t => t.Name).FirstOrDefault() ?? string.Empty
+            });
         }
 
-        public static CategoryDetailsDto ToDetailsDto(this Category category, int languageId)
+        public static IQueryable<CategoryDetailsDto> ProjectToDetailsDto(this IQueryable<Category> categories)
         {
-            ArgumentNullException.ThrowIfNull(category);
-
-            string trasnlationName = category.Translations?.FirstOrDefault(t => t.LanguageId == languageId)?.Name ?? string.Empty;
-
-            return new CategoryDetailsDto()
+            return categories.ProjectToDto().Select(category => new CategoryDetailsDto
             {
                 IsActive = category.IsActive,
-                Name = trasnlationName,
-            };
-
-        }
-
-        public static List<CategoryDto> ToDtoList(this IEnumerable<Category> categories, int languageId)
-        {
-            ArgumentNullException.ThrowIfNull(categories);
-
-            return categories.Select(c => c.ToDto(languageId)).ToList();
+                NameAr = category.NameAr,
+                NameEn = category.NameEn
+            });
         }
 
         public static CategoryLookupDto ToLookupDto(this Category lookup, int languageId)
